@@ -1,0 +1,8 @@
+# this file in flux while this repo being built out
+# to be done in a virtual env
+rq
+pandas
+requests
+Flask
+flask-mongoengine
+#dask
