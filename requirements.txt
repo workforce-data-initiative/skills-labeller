@@ -5,4 +5,5 @@ pandas
 requests
 Flask
 flask-mongoengine
+textacy
 #dask
