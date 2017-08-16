@@ -3,6 +3,9 @@ import pymongo
 import json
 
 class OrderImportances(object):
+    """
+    WIP not done yet
+    """
     def __init__(self,
                  sample_size=None,
                  host=None,
@@ -24,7 +27,9 @@ class OrderImportances(object):
                                           maxPoolSize=50)
         self.db = self.client[database]
 
-    def get_job_postings(self, collection=None, sample_size=None):
+    def get_job_postings(self, collection=None, sample_size=None, yield_n_postings=10):
+        """
+        """
         sample_size = sample_size
         collection=collection
 
@@ -36,3 +41,8 @@ class OrderImportances(object):
 
         if -1 == sample_size:
             sample_size = self.db[collection].count()
+
+        # https://docs.mongodb.com/manual/reference/method/db.collection.find/
+        yield
+
+
