@@ -6,4 +6,5 @@ requests
 Flask
 flask-mongoengine
 textacy
+git+https://github.com/robinsonkwame/wabbit_wappa#egg=wabbit_wappa
 #dask
