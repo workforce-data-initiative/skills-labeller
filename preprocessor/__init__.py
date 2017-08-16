@@ -1,10 +1,12 @@
+import en_core_web_sm
 from textacy import Doc
 from textacy.preprocess import preprocess_text
 from textacy.preprocess import fix_bad_unicode
 from textacy.keyterms import singlerank
 
+
 class JobPostingPreprocessor(object):
-    def __init__(self, n_keyterms=0.05, text=None, url=None, options=None):
+    def __init__(self, n_keyterms=0.05, text=None, url=None, options=None, model=None):
         """
         This class accepts a set of parameters for extracting keyterms/keyphrases from
         a given body of text. See Textacy, textacy.keyterms for related use and
@@ -20,6 +22,8 @@ class JobPostingPreprocessor(object):
         self.text = text
         self.url = url
         self.options = options
+        self.model = model
+        self.nlp = None
 
         if not options:
            self.options = {'lowercase':True,
@@ -28,6 +32,8 @@ class JobPostingPreprocessor(object):
                            'no_phone_numbers':True,
                            'no_currency_symbols':True,
                            'no_punct':True}
+        if not self.model:
+           self.model = 'en_default'
 
         # WIP: ideally we'd 'version' this class via its parameters so that we can
         # attach a set of preprocessor options, usage to system output and results
@@ -57,7 +63,6 @@ class JobPostingPreprocessor(object):
         return cleaned.strip()
 
     def get_job_posting_features(self,
-                                 lang="en",
                                  text=None,
                                  url=None,
                                  n_keyterms=None,
@@ -86,7 +91,8 @@ class JobPostingPreprocessor(object):
         options = self.options
         processed_text = preprocess_text(text, **options)
 
-        doc = Doc(processed_text, lang=lang)
+        # todo: get lang parameter working, not depending on
+        doc = Doc(processed_text, lang=self.model)
 
         keyphrases = singlerank(doc, n_keyterms=n_keyterms)
 

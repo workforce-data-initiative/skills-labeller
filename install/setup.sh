@@ -1,15 +1,23 @@
 # this file in flux while repository being built out
 
-# Assumes AWS, firewall on, otherwise this machine may expose unncessary ports
-# to the intertubes...
-sudo apt update
-sudo -y apt-get install build-essential python-dev git
+## Assumes AWS, firewall on, otherwise this machine may expose unncessary ports
+## to the intertubes...
+#sudo apt update
+#sudo -y apt-get install build-essential python-dev git
+#
+## Python
+#sudo -y apt-git install python-pip python-virtualenv python-numpy python-matplotlib
+#
+## Redis
+#sudo -y apt-get install redis-server
+#
+## Make a virtual env
+#virtualenv -p python3 skills
+#source skills/bin/activate
 
-# Python
-sudo -y apt-git install python-pip python-virtualenv python-numpy python-matplotlib
-
-# Redis
-sudo -y apt-get install redis-server
+# Install spacy language models
+python -m spacy download en
+python -m spacy link en_core_web_sm en_default
 
 # Use AWS MLabs mongodb service, 500 mb free, offloads Mongodb to a service
 ## Install mongodb
