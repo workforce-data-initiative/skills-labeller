@@ -12,12 +12,13 @@
 #sudo -y apt-get install redis-server
 #
 ## Make a virtual env
-#virtualenv -p python3 skills
-#source skills/bin/activate
+if [ ! -d "../skills" ]; then
+    virtualenv -p python3 ../skills
+    source skills/bin/activate
+fi
 
 # Install spacy language models
-python -m spacy download en
-python -m spacy link en_core_web_sm en_default
+python -m spacy link en_core_web_sm en
 
 # Use AWS MLabs mongodb service, 500 mb free, offloads Mongodb to a service
 ## Install mongodb

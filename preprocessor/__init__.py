@@ -33,7 +33,10 @@ class JobPostingPreprocessor(object):
                            'no_currency_symbols':True,
                            'no_punct':True}
         if not self.model:
-           self.model = 'en_default'
+           self.model = 'en'
+
+        if 'en' == self.model:
+            self.nlp = en_core_web_sm.load() # make doc with nlp(...)
 
         # WIP: ideally we'd 'version' this class via its parameters so that we can
         # attach a set of preprocessor options, usage to system output and results
@@ -92,7 +95,7 @@ class JobPostingPreprocessor(object):
         processed_text = preprocess_text(text, **options)
 
         # todo: get lang parameter working, not depending on
-        doc = Doc(processed_text, lang=self.model)
+        doc = self.nlp(processed_text)
 
         keyphrases = singlerank(doc, n_keyterms=n_keyterms)
 
