@@ -4,12 +4,13 @@ rq
 pandas
 pymongo
 requests
+spacy
 textacy
 
-# Install Spacy en language model(s)
-# note: these are small versions of the model, experiemtn with the full (1gb+) versions once things are in place
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0-alpha/en_core_web_sm-2.0.0-alpha.tar.gz
-https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.0.0-alpha/xx_ent_wiki_sm-2.0.0-alpha.tar.gz
+## Install Spacy en language model(s)
+## note: these are small versions of the model, experiemtn with the full (1gb+) versions once things are in place
+#https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0-alpha/en_core_web_sm-2.0.0-alpha.tar.gz
+#https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.0.0-alpha/xx_ent_wiki_sm-2.0.0-alpha.tar.gz
 
 # For python interface to the Vowpal Wabbit ML system
 git+https://github.com/robinsonkwame/wabbit_wappa#egg=wabbit_wappa

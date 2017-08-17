@@ -13,12 +13,13 @@
 #
 ## Make a virtual env
 if [ ! -d "../skills" ]; then
+    echo "... creating a custom virtual env for system use"
     virtualenv -p python3 ../skills
     source skills/bin/activate
 fi
 
-# Install spacy language models
-python -m spacy link en_core_web_sm en
+## Install spacy language models
+python -m spacy download en # in the future, see if more recent large version can be loaded
 
 # Use AWS MLabs mongodb service, 500 mb free, offloads Mongodb to a service
 ## Install mongodb

@@ -1,4 +1,4 @@
-import en_core_web_sm
+import spacy
 from textacy import Doc
 from textacy.preprocess import preprocess_text
 from textacy.preprocess import fix_bad_unicode
@@ -36,7 +36,7 @@ class JobPostingPreprocessor(object):
            self.model = 'en'
 
         if 'en' == self.model:
-            self.nlp = en_core_web_sm.load() # make doc with nlp(...)
+            self.nlp = spacy.load(self.model) #en_core_web_sm.load() # make doc with nlp(...)
 
         # WIP: ideally we'd 'version' this class via its parameters so that we can
         # attach a set of preprocessor options, usage to system output and results
