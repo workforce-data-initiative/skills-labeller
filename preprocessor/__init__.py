@@ -1,5 +1,4 @@
 import spacy
-from textacy import Doc
 from textacy.preprocess import preprocess_text
 from textacy.preprocess import fix_bad_unicode
 from textacy.keyterms import singlerank
