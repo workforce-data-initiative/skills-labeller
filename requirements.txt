@@ -6,6 +6,7 @@ pymongo
 requests
 spacy
 textacy
+ipdb
 
 # For python interface to the Vowpal Wabbit ML system
 git+https://github.com/robinsonkwame/wabbit_wappa#egg=wabbit_wappa
