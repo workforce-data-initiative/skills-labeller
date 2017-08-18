@@ -62,9 +62,11 @@ class OrderImportances(object):
         ipdb.set_trace()
         for items in self.get_all_vw_importances(collection_name=collection_name):
             requests = [pymongo.UpdateOne({'_id': item['job_posting']['_id']},
-                                          {"$set": {'importance': item['vw_importance']}}) for item in items]
+                                          {"$set": {'importance': item['vw_importance']}})
+                            for item in items]
 
-            self.collection.bulk_write(requests)
+            result = self.collection.bulk_write(requests, ordered=False)
+            assert result.modified_count == len(requests), "Was not able to bulk write each request"
 
     def sample_job_postings(self, collection_name=None, sample_size=None, yield_n_postings=10):
         """

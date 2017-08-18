@@ -42,13 +42,10 @@ class TestOrderImportance(unittest.TestCase):
         self.orderimportances = OrderImportances(collection_name=collection_name)
 
     def tearDown(self):
-        #pass
-        self.collection.remove() # note: deprecated
+        pass
+        #self.collection.remove() # note: deprecated
 
     def test_orderimportances(self):
-        # TODO: figure out how get all postings iterates, do it right
-        # TODO: figure out how to upsert on set_random_importances, upsert
-        # next call to order importances should have different importances
         old_docs_batch = self.orderimportances.get_all_job_postings()
         self.orderimportances.set_vw_importances()
         new_docs_batch = self.orderimportances.get_all_job_postings()
@@ -65,7 +62,6 @@ class TestOrderImportance(unittest.TestCase):
                         if new_id == old_id:
                             if new_importance == old_importance:
                                 ret = False # very unlikely to have same value
-                                break
+                                break # nice save for a quadratic run time ;)
 
-        assert ret, "At least one importance value was not modified by set_random_importances"
-        return ret
+        assert ret, "At least one importance value was not modified by set_random_importances()"
