@@ -46,7 +46,7 @@ class OrderImportances(object):
 
         # note: yield n should be a parameter, class defined
         for postings in self.get_all_job_postings(collection_name=collection_name, yield_n_postings=3):
-            # strawperson implementation
+            # Strawperson implementation
             yield [{'job_posting': posting, 'vw_importance': random()} for posting in postings]
 
     def set_vw_importances(self, collection_name=None):

@@ -53,7 +53,7 @@ class TestOrderImportance(unittest.TestCase):
         # get docs as a flattened array for easier iteration over them
         old_docs = [item for sublist in
                         self.orderimportances.get_all_job_postings(collection_name=self.collection_name) for item in sublist]
-        self.orderimportances.set_vw_importances(collection_name=self.collection_name)
+        self.orderimportances.set_vw_importances(collection_name=self.collection_name) # side effect on data store
         new_docs = [item for sublist in
                         self.orderimportances.get_all_job_postings(collection_name=self.collection_name) for item in sublist]
 

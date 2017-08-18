@@ -15,15 +15,15 @@
 if [ ! -d "../skills" ]; then
     echo "... creating a custom virtual env for system use"
     virtualenv -p python3 ../skills
-    source ../skills/bin/activate
 fi
 
-# Install python libraries
-pip install -r ../requirements.txt
+# Install python libraries through the virtualenv binary
+../skills/bin/pip install -r requirements.txt
 
 ## Install spacy language models
-python -m spacy download en # in the future, see if more recent large version can be loaded
+../skills/bin/python -m spacy download en # in the future, see if more recent large version can be loaded
 
+source ../skills/bin/activate # leaves user in skills-labller virtualenv
 
 # Use AWS MLabs mongodb service, 500 mb free, offloads Mongodb to a service
 ## Install mongodb
