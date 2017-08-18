@@ -57,15 +57,12 @@ class OrderImportances(object):
         if not collection_name:
             collection_name = self.collection_name
 
-        # should probably be batching these up ... several system feedback/performance things to consider
-        # currently get_all... returns one item
-        ipdb.set_trace()
         for items in self.get_all_vw_importances(collection_name=collection_name):
             requests = [pymongo.UpdateOne({'_id': item['job_posting']['_id']},
                                           {"$set": {'importance': item['vw_importance']}})
                             for item in items]
 
-            result = self.collection.bulk_write(requests, ordered=False)
+            result = self.db[collection_name].bulk_write(requests, ordered=False)
             assert result.modified_count == len(requests), "Was not able to bulk write each request"
 
     def sample_job_postings(self, collection_name=None, sample_size=None, yield_n_postings=10):
@@ -104,5 +101,6 @@ class OrderImportances(object):
                 yield ret
                 ret = []
 
-        ret.append(doc)
-        yield ret # at end of docs
+        if [] != ret:# return any left over postings modulo n_postings
+            ret.append(doc)
+            yield ret # at end of docs

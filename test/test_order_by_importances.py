@@ -2,7 +2,9 @@
 import unittest
 import pymongo
 import json
+from itertools import chain
 from random import random # should we consider using a real random generator?
+import ipdb
 from skill_oracle.order_by_importances import OrderImportances
 
 class TestOrderImportance(unittest.TestCase):
@@ -42,26 +44,27 @@ class TestOrderImportance(unittest.TestCase):
         self.orderimportances = OrderImportances(collection_name=collection_name)
 
     def tearDown(self):
-        pass
-        #self.collection.remove() # note: deprecated
+        self.collection.remove() # note: deprecated
 
     def test_orderimportances(self):
-        old_docs_batch = self.orderimportances.get_all_job_postings()
-        self.orderimportances.set_vw_importances()
-        new_docs_batch = self.orderimportances.get_all_job_postings()
+        """
+        Probablistically test that orderimportances works by setting to random values under set_vw_importances
+        """
+        # get docs as a flattened array for easier iteration over them
+        old_docs = [item for sublist in
+                        self.orderimportances.get_all_job_postings(collection_name=self.collection_name) for item in sublist]
+        self.orderimportances.set_vw_importances(collection_name=self.collection_name)
+        new_docs = [item for sublist in
+                        self.orderimportances.get_all_job_postings(collection_name=self.collection_name) for item in sublist]
 
         ret = True
-        # iterate over batches
-        for docs in old_docs_batch:
-            for new_docs in new_docs_batch:
-                # for batches, iterate over documents w/in, compare
-                for doc in docs:
-                    for new_doc in new_docs:
-                        new_id, new_importance = new_doc['_id'], new_doc['importance']
-                        old_id, old_importance = doc['_id'], doc['importance']
-                        if new_id == old_id:
-                            if new_importance == old_importance:
-                                ret = False # very unlikely to have same value
-                                break # nice save for a quadratic run time ;)
+        for doc in old_docs:
+            for new_doc in new_docs:
+                new_id, new_importance = new_doc['_id'], new_doc['importance']
+                old_id, old_importance = doc['_id'], doc['importance']
+                if new_id == old_id:
+                    if new_importance == old_importance:
+                        ret = False # very unlikely to have same value
+                        break # nice save for a O(n^2) run time ;)
 
         assert ret, "At least one importance value was not modified by set_random_importances()"
