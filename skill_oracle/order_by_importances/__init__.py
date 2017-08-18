@@ -3,6 +3,7 @@ from random import random
 import itertools
 import pymongo
 import json
+import ipdb
 
 class OrderImportances(object):
     """
@@ -20,6 +21,7 @@ class OrderImportances(object):
         self.collection_name = collection_name
         self.port = port
 
+
         if not host:
             self.host = 'localhost'
 
@@ -29,25 +31,40 @@ class OrderImportances(object):
         self.db = self.client[database]
         self.collection = self.db[self.collection_name]
 
-    def get_all_importances(self, vw=None):
+    def get_all_vw_importances(self, collection_name=None, vw=None):
         """
         Get importances from Vowpal Wabbit/ML System
-        """
-        for batch in self.get_all_job_postings(yield_n_postings=3):
-            importances = []
-            for posting in batch:
-                # would use vw object to get prediction, extract importance value
-                # importances = vw.send(... examples ...)
-                importances.append(random())
-                yield zip(batch, importances)
 
-    def set_random_importances(self):
+        Think about efficient batching (I know you can send multiple examples
+        within one send call)
+
+        WIP, not implemented beyond what's needed for unittests yet
         """
-        Set random importances in data store; used for simple testing
+        collection_name = collection_name
+        if not collection_name:
+            collection_name = self.collection_name
+
+        # note: yield n should be a parameter, class defined
+        for postings in self.get_all_job_postings(collection_name=collection_name, yield_n_postings=3):
+            # strawperson implementation
+            yield [{'job_posting': posting, 'vw_importance': random()} for posting in postings]
+
+    def set_vw_importances(self, collection_name=None):
         """
-        for ret in self.get_all_importances():
-            batch, importances = next(ret)
-            # todo: upsert many
+        Apply VW to collection, update importances in collection
+        """
+        collection_name = collection_name
+        if not collection_name:
+            collection_name = self.collection_name
+
+        # should probably be batching these up ... several system feedback/performance things to consider
+        # currently get_all... returns one item
+        ipdb.set_trace()
+        for items in self.get_all_vw_importances(collection_name=collection_name):
+            requests = [pymongo.UpdateOne({'_id': item['job_posting']['_id']},
+                                          {"$set": {'importance': item['vw_importance']}}) for item in items]
+
+            self.collection.bulk_write(requests)
 
     def sample_job_postings(self, collection_name=None, sample_size=None, yield_n_postings=10):
         """
@@ -71,17 +88,19 @@ class OrderImportances(object):
     def get_all_job_postings(self, collection_name=None, yield_n_postings=10):
         """
         """
+
         ret = []
         collection_name=collection_name
 
         if not collection_name:
             collection_name = self.collection_name
 
-        for count, doc in enumerate(self.db[collection_name].find()):
+        doc = None
+        for count, doc in enumerate(self.db[collection_name].find(), 1):
+            ret.append(doc)
             if 0 == count % yield_n_postings:
                 yield ret
                 ret = []
 
-            ret.append(doc)
-
+        ret.append(doc)
         yield ret # at end of docs
