@@ -18,6 +18,7 @@ class OrderImportances(object):
         self.sample_size = sample_size
         self.host = host
         self.collection_name = collection_name
+        self.port = port
 
         if not host:
             self.host = 'localhost'
@@ -28,11 +29,11 @@ class OrderImportances(object):
         self.db = self.client[database]
         self.collection = self.db[self.collection_name]
 
-    # straw mana
-    # this brings up load questions ... VW can handle this but
-    # should time test this. Bottle neck will probably be Mongo send time
-    def get_importances(self, vw=None):
-        for batch in self.get_job_postings(yield_n_postings=3):
+    def get_all_importances(self, vw=None):
+        """
+        Get importances from Vowpal Wabbit/ML System
+        """
+        for batch in self.get_all_job_postings(yield_n_postings=3):
             importances = []
             for posting in batch:
                 # would use vw object to get prediction, extract importance value
@@ -40,21 +41,17 @@ class OrderImportances(object):
                 importances.append(random())
                 yield zip(batch, importances)
 
-    # straw man (?)
-    def set_importances(self):
-        for (batch, importances) in self.get_importances():
-
-
-
-
-
-
-
-
-
-    def get_job_postings(self, collection_name=None, sample_size=None, yield_n_postings=10):
+    def set_random_importances(self):
         """
-        WIP, not tested/finished
+        Set random importances in data store; used for simple testing
+        """
+        for ret in self.get_all_importances():
+            batch, importances = next(ret)
+            # todo: upsert many
+
+    def sample_job_postings(self, collection_name=None, sample_size=None, yield_n_postings=10):
+        """
+        WIP
         """
         ret = []
         sample_size = sample_size
@@ -68,6 +65,17 @@ class OrderImportances(object):
 
         if -1 == sample_size:
             sample_size = self.db[collection_name].count()
+        pass
+
+
+    def get_all_job_postings(self, collection_name=None, yield_n_postings=10):
+        """
+        """
+        ret = []
+        collection_name=collection_name
+
+        if not collection_name:
+            collection_name = self.collection_name
 
         for count, doc in enumerate(self.db[collection_name].find()):
             if 0 == count % yield_n_postings:
