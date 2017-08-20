@@ -1,0 +1,6 @@
+version: '3'
+services:
+  mongo:
+    image: mongo
+    volumes:
+      - /opt/mongo_data:/data/db
