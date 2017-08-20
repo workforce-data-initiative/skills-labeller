@@ -1,13 +1,1 @@
-# this file in flux while this repo being built out
-# to be done in a virtual env
-rq
-pandas
-pymongo
-requests
-spacy
-textacy
-ipdb
-
-# For python interface to the Vowpal Wabbit ML system
-git+https://github.com/robinsonkwame/wabbit_wappa#egg=wabbit_wappa
-#dask
+-r requirements/prod.txt

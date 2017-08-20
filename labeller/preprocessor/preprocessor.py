@@ -25,17 +25,18 @@ class JobPostingPreprocessor(object):
         self.nlp = None
 
         if not options:
-           self.options = {'lowercase':True,
-                           'no_urls':True,
-                           'no_emails':True,
-                           'no_phone_numbers':True,
-                           'no_currency_symbols':True,
-                           'no_punct':True}
+            self.options = {'lowercase': True,
+                            'no_urls': True,
+                            'no_emails': True,
+                            'no_phone_numbers': True,
+                            'no_currency_symbols': True,
+                            'no_punct': True}
         if not self.model:
-           self.model = 'en'
+            self.model = 'en'
 
         if 'en' == self.model:
-            self.nlp = spacy.load(self.model) #en_core_web_sm.load() # make doc with nlp(...)
+            # en_core_web_sm.load() # make doc with nlp(...)
+            self.nlp = spacy.load(self.model)
 
         # WIP: ideally we'd 'version' this class via its parameters so that we can
         # attach a set of preprocessor options, usage to system output and results
@@ -55,7 +56,8 @@ class JobPostingPreprocessor(object):
         # Next we can remove the remaining tags:
         # Then, we deal with whitespace
         # ... finally we strip newlines
-        cleaned = re.sub(r"(?is)<(script|style).*?>.*?(</\1>)", "", text.strip())
+        cleaned = re.sub(
+            r"(?is)<(script|style).*?>.*?(</\1>)", "", text.strip())
         cleaned = re.sub(r"(?s)<!--(.*?)-->[\n]?", "", cleaned)
         cleaned = re.sub(r"(?s)<.*?>", " ", cleaned)
         cleaned = re.sub(r"&nbsp;", " ", cleaned)
@@ -87,7 +89,7 @@ class JobPostingPreprocessor(object):
             except requests.exceptions.RequestException as e:
                 html = 'REQUEST_TIMED_OUT_' + '(' + url + ')'
             text = self.get_text(html)
-        else: # assume text provided
+        else:  # assume text provided
             pass
 
         options = self.options
@@ -98,4 +100,5 @@ class JobPostingPreprocessor(object):
 
         keyphrases = singlerank(doc, n_keyterms=n_keyterms)
 
-        return [element[0] for element in keyphrases] # use () for generator if desired
+        # use () for generator if desired
+        return [element[0] for element in keyphrases]
