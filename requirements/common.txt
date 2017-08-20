@@ -5,4 +5,5 @@ pymongo==3.5.0
 requests==2.18.4
 spacy==1.9.0
 textacy==0.4.1
+falcon==1.2.0
 git+https://github.com/robinsonkwame/wabbit_wappa#egg=wabbit_wappa
