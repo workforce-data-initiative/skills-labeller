@@ -29,7 +29,9 @@ class MongoDatabase(object):
             self.client = pymongo.MongoClient(
                 self.MONGO_HOST, int(self.MONGO_PORT))
         else:
-            connection = "mongodb://{0}:{1}@{2}:{3}/{4}".format(self.MONGO_USERNAME, self.MONGO_PASSWORD, self.MONGO_HOST, self.MONGO_PORT, self.MONGO_DATABASE)
+            connection = "mongodb://{0}:{1}@{2}:{3}/{4}".format(
+                self.MONGO_USERNAME, self.MONGO_PASSWORD,
+                self.MONGO_HOST, self.MONGO_PORT, self.MONGO_DATABASE)
             self.client = pymongo.MongoClient(connection)
         self.db = self.client[self.MONGO_DATABASE]
 
