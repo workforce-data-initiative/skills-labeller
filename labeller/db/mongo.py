@@ -3,6 +3,7 @@
 import os
 import sys
 import pymongo
+import random
 import json
 import logging
 import urllib.request
@@ -43,3 +44,19 @@ class MongoDatabase(object):
         except:
             result = None
         return result
+
+    def get_random_posting(self):
+        """ Retrieve a random job posting from the collection.
+
+        Returns
+        -------
+        posting: dict
+            A random job posting.
+
+        """
+
+        count = self.db.job_postings.count()
+        index = random.randrange(1, count-1)
+        sample = self.db.job_postings.find().limit(-1).skip(index).next()
+        sample['_id'] = str(sample['_id'])
+        return sample
