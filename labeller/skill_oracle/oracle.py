@@ -4,6 +4,10 @@ import itertools
 import pymongo
 import json
 import ipdb
+try:
+    from labeller import MongoDatabase
+except:
+    from ..db.mongo import MongoDatabase
 
 
 class OrderImportances(object):

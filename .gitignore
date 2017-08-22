@@ -102,3 +102,6 @@ ENV/
 
 # visual studio code
 .vscode/
+
+# testing resources
+resources/
