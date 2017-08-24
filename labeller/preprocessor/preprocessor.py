@@ -7,27 +7,6 @@ from textacy.keyterms import singlerank
 # should probably import from some kidn of ML api to define endpoints, queue names
 # and the like
 
-class Endpoint(object):
-    def __init__(self, options=None):
-        self.options = options
-        self.redis_options = None
-        self.queue_options = None
-        self.queues = {}
-
-        if 'backend_options' in self.options:
-            self.redis_options = options['backend_options']
-
-        if 'queue_options' in self.options:
-            self.queue_options = options['queue_options']
-
-        redis_conn = Redis(**self.redis_options)
-
-        # set up named queues
-        if 'queues' in self.options:
-            for name in self.options['queues']:
-                self.queues.update({name: rq.Queue(name, **self.queue_options)})
-
-
 class JobPostingPreprocessor(object):
     def __init__(self, n_keyterms=0.05, text=None, url=None, options=None, model=None):
         """
@@ -126,3 +105,29 @@ class JobPostingPreprocessor(object):
 
         # use () for generator if desired
         return [element[0] for element in keyphrases]
+
+class Endpoint(object):
+    def __init__(self, options=None):
+        self.preprocessor = JobPostingPreprocessor() #should be called .api?
+        self.options = options
+        self.redis_options = None
+        self.queue_options = None
+        self.queue = None
+
+        if 'backend_options' in self.options:
+            self.redis_options = options['backend_options']
+
+        if 'queue_options' in self.options:
+            self.queue_options = options['queue_options']
+
+    def setup_queue(self)
+        redis_conn = Redis(**self.redis_options)
+        self.queue = rq.Queue(name, **self.queue_options)
+
+    def run(self):
+        if not self.queue:
+            self.setup_queue()
+
+        with rq.Connection():
+            w = rq.Worker(self.queue)
+            w.work() # now listening on that queue/endpoint
