@@ -108,6 +108,12 @@ class JobPostingPreprocessor(object):
 
 class Endpoint(object):
     def __init__(self, options=None):
+        """
+        e = Endpoint()
+        redis_conn = Redis()
+        q = rq.Queue()
+        result = q.enqueue('get_job_posting_features', text="fox fox fox multi tool jumped over the fence and and")
+        """
         self.preprocessor = JobPostingPreprocessor() #should be called .api?
         self.options = options
         self.redis_options = None
