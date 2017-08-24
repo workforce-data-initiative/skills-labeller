@@ -106,9 +106,16 @@ class JobPostingPreprocessor(object):
         # use () for generator if desired
         return [element[0] for element in keyphrases]
 
+
+mypreprocessor = JobPostingPreprocessor()
+
 class Endpoint(object):
-    def __init__(self, options=None):
+    def __init__(self,
+                 preprocessor=mypreprocessor,
+                 options=None):
         """
+        Provides access to an instance of the preprocessor
+
         e = Endpoint()
 
         # interact with endpoint by...
@@ -116,27 +123,45 @@ class Endpoint(object):
         q = rq.Queue()
         result = q.enqueue('get_job_posting_features', text="fox fox fox multi tool jumped over the fence and and")
         """
-        self.preprocessor = JobPostingPreprocessor() #should be called .api?
+        self.preprocessor = mypreprocessor#JobPostingPreprocessor() #should be called .api?
         self.options = options
-        self.redis_options = None
-        self.queue_options = None
+        self.redis_options = {}
+        self.redis_conn = None
+        self.queue_options = {}
+        self.queue_name = 'preprocessor'
         self.queue = None
 
-        if self.options is not None and 'backend_options' in self.options:
+        if self.options is not None:
+            if 'backend_options' in self.options:
                 self.redis_options = self.options['backend_options']
 
-        if self.options is not None and 'queue_options' in self.options:
+            if 'queue_options' in self.options:
                 self.queue_options = self.options['queue_options']
 
+            if 'name' in self.options['queue_name']:
+                self.queue = self.options['queue_name']
+
     def setup_queue(self):
-        redis_conn = Redis(**self.redis_options)
-        self.queue = rq.Queue(name, **self.queue_options)
+        self.redis_conn = Redis(**self.redis_options)
+        self.queue = rq.Queue(self.queue_name,
+                              connection=self.redis_conn,
+                              **self.queue_options)
 
     def run(self):
-        if not self.queue:
+        if self.queue is None:
             self.setup_queue()
 
         # self.preprocessor has imported lannguage model so fork already has it
-        with rq.Connection():
+        # note: some of this might not be needed (with/ etc etc)
+        with rq.Connection(self.redis_conn):
             w = rq.Worker(self.queue)
             w.work() # now listening on that queue/endpoint
+
+    def push(self, text, kwargs):
+        result = None
+        if self.queue is not None:
+            result = self.queue.enqueue(
+                        self.preprocessor.get_job_posting_features(text=text, **kwargs))
+        return result
+
+
