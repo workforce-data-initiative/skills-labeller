@@ -1,7 +1,6 @@
 """ Unit test for job posting preprocessor """
 import unittest
-from labeller import JobPostingPreprocessor
-
+from labeller.preprocessor import JobPostingPreprocessor
 
 class TestJobProcessingPreprocessor(unittest.TestCase):
     """ Unit test for job preprocessor """

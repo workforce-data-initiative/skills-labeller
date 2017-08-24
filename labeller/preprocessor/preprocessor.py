@@ -110,6 +110,8 @@ class Endpoint(object):
     def __init__(self, options=None):
         """
         e = Endpoint()
+
+        # interact with endpoint by...
         redis_conn = Redis()
         q = rq.Queue()
         result = q.enqueue('get_job_posting_features', text="fox fox fox multi tool jumped over the fence and and")
@@ -126,7 +128,7 @@ class Endpoint(object):
         if 'queue_options' in self.options:
             self.queue_options = options['queue_options']
 
-    def setup_queue(self)
+    def setup_queue(self):
         redis_conn = Redis(**self.redis_options)
         self.queue = rq.Queue(name, **self.queue_options)
 
@@ -134,6 +136,7 @@ class Endpoint(object):
         if not self.queue:
             self.setup_queue()
 
+        # w/ should import JPPrecessor language model so fork already has it
         with rq.Connection():
             w = rq.Worker(self.queue)
             w.work() # now listening on that queue/endpoint
