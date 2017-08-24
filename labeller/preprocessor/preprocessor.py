@@ -7,6 +7,27 @@ from textacy.keyterms import singlerank
 # should probably import from some kidn of ML api to define endpoints, queue names
 # and the like
 
+class Endpoint(object):
+    def __init__(self, options=None):
+        self.options = options
+        self.redis_options = None
+        self.queue_options = None
+        self.queues = {}
+
+        if 'backend_options' in self.options:
+            self.redis_options = options['backend_options']
+
+        if 'queue_options' in self.options:
+            self.queue_options = options['queue_options']
+
+        redis_conn = Redis(**self.redis_options)
+
+        # set up named queues
+        if 'queues' in self.options:
+            for name in self.options['queues']:
+                self.queues.update({name: rq.Queue(name, **self.queue_options)})
+
+
 class JobPostingPreprocessor(object):
     def __init__(self, n_keyterms=0.05, text=None, url=None, options=None, model=None):
         """
