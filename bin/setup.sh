@@ -8,8 +8,10 @@
 ## Python
 #sudo -y apt-git install python-pip python-virtualenv python-numpy python-matplotlib
 #
-## Redis
-#sudo -y apt-get install redis-server
+# Redis
+sudo -y apt-get install redis-server
+# Do we need to turn off THP, see redis-server warning?
+
 #
 ## Make a virtual env
 if [ ! -d "../skills" ]; then

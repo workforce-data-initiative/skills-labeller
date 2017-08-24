@@ -1,5 +1,6 @@
 ipdb==0.10.3
 pandas==0.20.3
+redis==2.10.6
 rq==0.8.1
 pymongo==3.5.0
 requests==2.18.4

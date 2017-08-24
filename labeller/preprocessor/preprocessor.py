@@ -1,8 +1,11 @@
+from redis import Redis
+import rq
 import spacy
 from textacy.preprocess import preprocess_text
 from textacy.preprocess import fix_bad_unicode
 from textacy.keyterms import singlerank
-
+# should probably import from some kidn of ML api to define endpoints, queue names
+# and the like
 
 class JobPostingPreprocessor(object):
     def __init__(self, n_keyterms=0.05, text=None, url=None, options=None, model=None):
