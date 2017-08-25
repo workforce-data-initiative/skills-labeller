@@ -110,3 +110,9 @@ class OrderImportances(object):
         if [] != ret:  # return any left over postings modulo n_postings
             ret.append(doc)
             yield ret  # at end of docs
+
+if __name__ == "__main__":
+    import time
+    while True:
+        time.sleep(1)
+        print("\n\t stub loop for sampling from database")

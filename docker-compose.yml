@@ -6,3 +6,11 @@ services:
       - '27017:27017'
     volumes:
       - /opt/mongo_data:/data/db
+
+  oracle:
+    build: ./labeller/skill_oracle
+    image: oracle
+    command: ["-b25 --save_resume --port 7000 --active --predictions /dev/null --daemon --audit --link=logistic --loss_function=logistic --skips 2 --ngram 2 --ftrl"]
+    container_name: oracle_vowpalwabbit
+    ports:
+      - '27017:27017' # so it can see the monogdb
