@@ -12,10 +12,10 @@ RUN apt-get update &&\
 RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install Python packages (really only need pymongo though)
-FROM python:3.6.2-slim
+RUN apt-get -y install python3-pip
 ADD requirements requirements
 ADD requirements.txt requirements.txt
-RUN pip install -r requirements.txt --no-cache-dir
+RUN pip3 install -r requirements.txt --no-cache-dir
 RUN apt-get update && apt-get -y autoremove
 
 # Copy over Oracle script
