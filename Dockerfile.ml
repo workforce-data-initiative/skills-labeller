@@ -14,24 +14,18 @@ RUN echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
 RUN apt-get update
 RUN apt-get install -y openjdk-7-jdk
-RUN export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
-
-# Install Vowpal Wabbit
-RUN apt-get update &&\
-    apt-get -y install git build-essential libboost-program-options-dev libboost-python-dev zlib1g-dev 
-RUN git clone git://github.com/JohnLangford/vowpal_wabbit.git /vowpal_wabbit
-
-
 RUN export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::") &&\
     ln -s $JAVA_HOME/include/jni.h /usr/include/jni.h &&\
     ln -s $JAVA_HOME/include/jni_md.h /usr/include/jni_md.h
 
-
-RUN cd /vowpal_wabbit && make
-
-RUN cd /vowpal_wabbit && make install
-
-RUN rm -Rf /vowpal_wabbit/* &&\
+# Install Vowpal Wabbit
+RUN apt-get update &&\
+    apt-get -y install git build-essential libboost-program-options-dev libboost-python-dev zlib1g-dev &&\
+    git clone git://github.com/JohnLangford/vowpal_wabbit.git /vowpal_wabbit &&\
+    export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::") &&\
+    cd /vowpal_wabbit && make &&\
+    cd /vowpal_wabbit && make install &&\
+    rm -Rf /vowpal_wabbit/* &&\
     apt-get -y autoremove
 
 RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
