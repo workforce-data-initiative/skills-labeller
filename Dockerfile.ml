@@ -1,9 +1,6 @@
 FROM python:3.6.2-slim
 MAINTAINER "Kwame Porter Robinson" kporterrobinson@gmail.com
 
-# Install JDK
-# Credit: picoded/ubuntu-openjdk-8-jdk
-
 # Add some core repos
 RUN apt-get update && \
     apt-get install -y sudo curl zip openssl build-essential python-software-properties software-properties-common && \
@@ -30,6 +27,6 @@ RUN apt-get update &&\
 
 RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-#COPY ./labeller/skill-oracle/run.sh /vowpal_wabbit
+COPY ./labeller/skill-oracle/run.sh /vowpal_wabbit
 #RUN chmod a+x run.sh
 #ENTRYPOINT ["/vowpal_wabbit/run.sh"]
