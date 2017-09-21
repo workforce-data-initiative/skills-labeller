@@ -1,16 +1,20 @@
-version: '3'
+version: '3.2'
 services:
+  etl:
+    image: etl
+    build:
+      context: ./
+      dockerfile: ./etl/Dockerfile
+    environment:
+      # note: a project wide env-file directive would be cleaner
+      - MONGO_HOST=mongo
+      - RUN_UNITTESTS_ONLY=true
+    depends_on:
+      - mongo
+
   mongo:
     image: mongo
     ports:
       - '27017:27017'
     volumes:
-      - /opt/mongo_data:/data/db
-
-  oracle:
-    build: ./labeller/skill_oracle
-    image: oracle
-    command: ["-b25 --save_resume --port 7000 --active --predictions /dev/null --daemon --audit --link=logistic --loss_function=logistic --skips 2 --ngram 2 --ftrl"]
-    container_name: oracle_vowpalwabbit
-    ports:
-      - '27017:27017' # so it can see the monogdb
+        - /opt/mongo_data:/data/db
