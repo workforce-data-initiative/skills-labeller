@@ -11,7 +11,7 @@ RUN apt-get update &&\
 
 RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-WORKDIR /vowpal_wabbit
-COPY run.sh /vowpal_wabbit
+WORKDIR ./
+COPY run.sh run.sh
 RUN chmod a+x run.sh
-ENTRYPOINT ["/vowpal_wabbit/run.sh"]
+ENTRYPOINT ["./run.sh"]
