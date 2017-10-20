@@ -1,1 +1,1 @@
-web: gunicorn labeller:app
+web: gunicorn preprocessor:app
