@@ -1,36 +1,17 @@
-FROM python:3.6.2-slim
-WORKDIR '/skills-labeller'
+FROM ubuntu:14.04
+FROM openjdk:7-jdk
+MAINTAINER "Kwame Porter Robinson" kporterrobinson@gmail.com
 
-# Required system libraries
 RUN apt-get update &&\
-    apt-get install -y build-essential &&\
-    apt-get install -y git
+    apt-get -y install git build-essential libboost-program-options-dev libboost-python-dev zlib1g-dev  &&\
+    git clone git://github.com/JohnLangford/vowpal_wabbit.git /vowpal_wabbit &&\
+    cd /vowpal_wabbit && make && make install &&\
+    rm -Rf /vowpal_wabbit/* && apt-get -y remove git &&\
+    apt-get -y autoremove
 
-# Required inital python related files
-ADD preprocessor/requirements.txt requirements.txt
+RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-## Install required python libraries, spacy related libary
-#RUN pip install virtualenv
-#RUN ln -s /usr/local/bin/virtualenv /usr/bin/virtualenv
-#RUN virtualenv -p python3 env
-RUN pip install -r requirements.txt --no-cache-dir
-RUN python -m spacy download en
-# see: https://github.com/explosion/spaCy/issues/1110 (on debian)
-RUN apt-get install -y libgomp1 
-
-# Clean up
-RUN apt-get remove -y build-essential && apt-get remove -y git && apt-get -y autoremove
-
-# Copy over preprocessor specific content
-ADD preprocessor preprocessor
-ADD run.sh run.sh
-ADD webserver.py webserver.py
-ADD Procfile Procfile
-ADD runtime.txt runtime.txt
-ADD setup.py setup.py
-
-#ENV API_DEBUG=0
-#ENV API_PORT=3000
-#ENV API_HOST='localhost'
-
-ENTRYPOINT '/skills-labeller/run.sh'
+WORKDIR /vowpal_wabbit
+COPY run.sh /vowpal_wabbit
+RUN chmod a+x run.sh
+ENTRYPOINT ["/vowpal_wabbit/run.sh"]
