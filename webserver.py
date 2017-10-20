@@ -8,7 +8,7 @@ from werkzeug.serving import run_simple
 from preprocessor import app
 
 # Environment configuration
-API_PORT = os.getenv('API_PORT', 3000)
+API_PORT = os.getenv('API_PORT', 4000)
 API_HOST = os.getenv('API_HOSTNAME', '0.0.0.0')
 API_DEBUG = os.getenv('API_DEBUG', 0)
 
