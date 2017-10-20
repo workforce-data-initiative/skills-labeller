@@ -4,7 +4,7 @@ import falcon
 import random
 import logging
 
-## This default skill oralce needs no imports but yours might
+## This default skill oracle needs no imports but yours might
 #try:
 #    from preprocessor import DefaultSingleRank
 #except:

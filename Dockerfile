@@ -11,7 +11,16 @@ RUN apt-get update &&\
 
 RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-WORKDIR ./
-COPY run.sh run.sh
-RUN chmod a+x run.sh
-ENTRYPOINT ["./run.sh"]
+WORKDIR ./skilloracle
+COPY bin bin
+COPY skilloracle skilloracle
+COPY test test
+
+ADD webserver.py webserver.py
+ADD run.sh run.sh
+ADD Procfile Procfile
+ADD runtime.txt runtime.txt
+ADD setup.py setup.py
+
+#RUN chmod a+x run.sh
+#ENTRYPOINT ["./run.sh"]

@@ -8,3 +8,4 @@ textacy==0.4.1
 falcon==1.2.0
 gunicorn==19.7.1
 werkzeug==0.12.2
+git+https://github.com/robinsonkwame/wabbit_wappa#egg=wabitt_wappa
