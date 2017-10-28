@@ -1,10 +1,8 @@
 import socket
 from contextlib import closing
 import psutil
+from wabbit_wappa.active_learner import DaemonVWProcess
 
-def check_socket(host, port):
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-        return sock.connect_ex((host, port)) == 0
 
 VW_HOST='127.0.0.1'
 VW_PORT=7000
@@ -13,8 +11,8 @@ VW_CMD ="--save_resume --port {port} --active --predictions /dev/null --daemon -
 
 class SkillOracle(object):
     def __init__(self,
-                 host=VW_HOST,
-                 port=VW_PORT,
+                 host=None,
+                 port=None,
                  cmd=VW_CMD):
         self.cmd = cmd
         self.host = host
@@ -22,14 +20,18 @@ class SkillOracle(object):
         self.oracle = None
 
         command = None
-        if not check_socket(host=host, port=port):
+        if not self.check_socket(host=self.host, port=self.port):
             command = self.cmd
         # Stand up/Connect to an instance of vowpal wabbit
-        self.oracle = wabbit_wappa.DaemonVWProcess(command=self.cmd,
-                                                   port=self.port,
-                                                   ip=self.host)
+        self.oracle = DaemonVWProcess(command=self.cmd,
+                                      port=self.port,
+                                      ip=self.host)
 
-    def kill_oracle(self, name='vw'):
+    def check_socket(self, host=None, port=None):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            return sock.connect_ex((host, port)) == 0
+
+    def kill(self, name='vw'):
         ret = False
         for proc in psutil.process_iter():
             if proc.name() == name:

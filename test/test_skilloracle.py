@@ -2,8 +2,10 @@
 import unittest
 import requests
 import json
-import skilloracle
+from skilloracle import SkillOracle
+from contextlib import closing
 import psutil
+import socket
 
 
 class TestSkillOracle(unittest.TestCase):
@@ -13,17 +15,20 @@ class TestSkillOracle(unittest.TestCase):
         self.port = port
         self.host = host
 
-    def test_create_daemon(self):
-        assert False == skilloracle.check_socket(host=self.host, port=self.port),
+    def test_create_and_destroy_daemon(self):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            daemon_exists= sock.connect_ex((self.host, self.port)) == 0
+
+        assert False == daemon_exists,\
             "Daemon already exists on that host ({}), port ({})".format(self.host, self.port)
 
-        oracle = skilloracle() # stands up a daemon
+        oracle = SkillOracle(port=self.port) # stands up a daemon
 
-        assert True == skilloracle.check_socket(host=self.host, port=self.port),
+        assert True == oracle.check_socket(host=self.host, port=self.port),\
             "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
 
         # kill daemon, we're done
-        assert True == skilloracle.kill_oracle(), "Failed to kill skill oracle!"
+        assert True == oracle.kill(), "Failed to kill skill oracle!"
 
 
     def test_preprocessor(self):
