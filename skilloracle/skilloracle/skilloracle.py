@@ -58,4 +58,5 @@ class SkillOracle(object):
                        name_namespace="name",
                        name=name)
 
-        self.oracle.teach(labelled_example)
+        # note this is a raw send, need esacping for real use
+        self.oracle.sendline(labelled_example)

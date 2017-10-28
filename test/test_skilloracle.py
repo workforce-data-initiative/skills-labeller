@@ -55,8 +55,8 @@ class TestSkillOracle(unittest.TestCase):
 
         oracle.PUT(label="1",
                    name="ability to accept and learn from criticism",
-                   context="furthermore, some accomplishments that I
-                            have gained is having the and always have
+                   context="furthermore, some accomplishments that I\
+                            have gained is having the and always have\
                             a positive attitude.")
 
         self.teardown_oracle(oracle=oracle)
