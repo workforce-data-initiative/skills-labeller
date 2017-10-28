@@ -37,7 +37,6 @@ class TestSkillOracle(unittest.TestCase):
         ret = oracle.kill()
         return ret
 
-
     def test_create_and_destroy_daemon(self):
         oracle = self.standup_new_oracle(port='7000')
         assert None != oracle, "Failed to create oracle."
@@ -51,5 +50,13 @@ class TestSkillOracle(unittest.TestCase):
         assert True == ret, "Failed to kill skill oracle!"
 
     def test_PUT(self):
-        return True
+        oracle = self.standup_new_oracle(port='7000')
+        assert None != oracle, "Failed to create oracle."
 
+        oracle.PUT(label="1",
+                   name="ability to accept and learn from criticism",
+                   context="furthermore, some accomplishments that I
+                            have gained is having the and always have
+                            a positive attitude.")
+
+        self.teardown_oracle(oracle=oracle)

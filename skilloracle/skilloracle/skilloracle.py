@@ -59,5 +59,3 @@ class SkillOracle(object):
                        name=name)
 
         self.oracle.teach(labelled_example)
-
-
