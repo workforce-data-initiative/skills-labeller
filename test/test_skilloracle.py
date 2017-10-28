@@ -7,7 +7,6 @@ from contextlib import closing
 import psutil
 import socket
 
-
 class TestSkillOracle(unittest.TestCase):
     """ Unit test for job preprocessor """
 
@@ -15,7 +14,9 @@ class TestSkillOracle(unittest.TestCase):
         self.port = port
         self.host = host
 
-    def test_create_and_destroy_daemon(self):
+    def standup_new_oracle(self, host=None, port=None):
+        oracle = None
+
         # Check that nothing is running on our port, need to start w a clean slate
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             daemon_exists= sock.connect_ex((self.host, self.port)) == 0
@@ -29,9 +30,26 @@ class TestSkillOracle(unittest.TestCase):
         # whether to launch or look for a daemon, might want to tidy up
         oracle = SkillOracle(port=self.port) # stands up a daemon
 
+        return oracle
+
+    def teardown_oracle(self, oracle=None):
+        ret = False
+        ret = oracle.kill()
+        return ret
+
+
+    def test_create_and_destroy_daemon(self):
+        oracle = self.standup_new_oracle(port='7000')
+        assert None != oracle, "Failed to create oracle."
+
         # Verify that something was stood up on the port
         assert True == oracle.check_socket(host=self.host, port=self.port),\
             "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
 
         # Cool, we stood up the daemon, now we kill it
-        assert True == oracle.kill(), "Failed to kill skill oracle!"
+        ret = self.teardown_oracle(oracle=oracle)
+        assert True == ret, "Failed to kill skill oracle!"
+
+    def test_PUT(self):
+        return True
+
