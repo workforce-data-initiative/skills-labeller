@@ -2,6 +2,7 @@ import socket
 from contextlib import closing
 import psutil
 from wabbit_wappa.active_learner import DaemonVWProcess
+from wabbit_wappa import escape_vw_string
 
 
 VW_HOST='127.0.0.1'
@@ -46,12 +47,12 @@ class SkillOracle(object):
         return ret
 
     def PUT(self, label, name, context):
-        # Given a labelled example, construct a vowpal_wabbit
-        # suitable input string for .teach'ing
-        # ideally I would use the Namespace, and other, functions but
-        # I believe it's faster to do it directly
+        label = escape_vw_string(label)
+        name = escape_vw_string(name)
+        context = escape_vw_string(context)
 
-        labelled_example = "{label} |{context_namespace} {context} |{name_namespace} {name}".\
+        labelled_example = "{label} |{context_namespace} {context} \
+                                    |{name_namespace} {name}".\
                 format(label=label,
                        context_namespace="context",
                        context=context,
