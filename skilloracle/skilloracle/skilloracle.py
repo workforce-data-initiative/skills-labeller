@@ -1,3 +1,5 @@
+import subprocess
+import shlex
 import socket
 from contextlib import closing
 import psutil
@@ -30,6 +32,12 @@ class SkillOracle(object):
                                       ip=self.host)
 
     def check_socket(self, host=None, port=None):
+        """
+        todo: fix this function, i assumed it worked and it doesn't
+
+        echo'ing to vw doesn't seem to consistently work. might be better
+        to look at some kind of process list or echo a "1" or something
+        """
         host = host
         if host == None:
             host = '127.0.0.1' # need some kind of a host to check
@@ -37,14 +45,14 @@ class SkillOracle(object):
             return sock.connect_ex((host, port)) == 0
 
     def kill(self, name='vw'):
-        ret = False
-        for proc in psutil.process_iter():
-            if proc.name() == name:
-                proc.kill()
-                # continue, could be more...
-                ret = True
-
-        return ret
+        ret = subprocess(shlex("killall vw"))
+        #for proc in psutil.process_iter():
+        #    if proc.name() == name:
+        #        proc.kill()
+        #        proc.wait() # let it clean up...
+        #        # continue, could be more...
+        #        ret = True
+        return ret == 0
 
     def PUT(self, label, name, context):
         label = escape_vw_string(label)
