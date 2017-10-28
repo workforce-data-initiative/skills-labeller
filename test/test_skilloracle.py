@@ -35,20 +35,3 @@ class TestSkillOracle(unittest.TestCase):
 
         # Cool, we stood up the daemon, now we kill it
         assert True == oracle.kill(), "Failed to kill skill oracle!"
-
-    def test_preprocessor(self):
-        # todo: remove me
-        return True
-
-        success = "fox fox fox"
-
-        text = "fox fox fox multi tool jumped over the fence and and"
-        n_keyterms = 0.05
-
-        payload = {'job_posting':text, 'n_keyterms':n_keyterms}
-        url = "http://{host}:{port}".format(host=self.host, port=self.port)
-
-        r = requests.get(url, params=payload)
-        potential = json.loads(r.text)['preprocesser']['potential_skills']['default']
-        self.assertTrue(len(potential) > 0)
-        self.assertTrue(potential[0] == success)
