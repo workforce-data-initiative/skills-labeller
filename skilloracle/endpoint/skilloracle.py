@@ -11,12 +11,11 @@ except:
 
 class SkillOracleEndpoint(object):
     def __init__(self):
-        self.oracle = SkillOracle()
+        self.oracle = SkillOracle(port=7000)
         self.put_valid_keys = {'label', 'name', 'context'}
-        self.preprocessors = set(self.preprocessor.keys())
 
     def on_put(self, req, resp):
-        query = falcon.uri.parse_query_string(req.query_string) # I assume this de-urlencodes
+        query = falcon.uri.parse_query_string(req.query_string)
         query_keys = set(query.keys())
 
         if self.put_valid_keys.issuperset(query_keys):
