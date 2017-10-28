@@ -2,15 +2,34 @@
 import unittest
 import requests
 import json
+import skilloracle
+import psutil
 
-class TestJobProcessingPreprocessor(unittest.TestCase):
+
+class TestSkillOracle(unittest.TestCase):
     """ Unit test for job preprocessor """
 
-    def setUp(self, port=3000, host='localhost'):
+    def setUp(self, port=7000, host='127.0.0.1'):
         self.port = port
         self.host = host
 
+    def test_create_daemon(self):
+        assert False == skilloracle.check_socket(host=self.host, port=self.port),
+            "Daemon already exists on that host ({}), port ({})".format(self.host, self.port)
+
+        oracle = skilloracle() # stands up a daemon
+
+        assert True == skilloracle.check_socket(host=self.host, port=self.port),
+            "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
+
+        # kill daemon, we're done
+        assert True == skilloracle.kill_oracle(), "Failed to kill skill oracle!"
+
+
     def test_preprocessor(self):
+        # todo: remove me
+        return True
+
         success = "fox fox fox"
 
         text = "fox fox fox multi tool jumped over the fence and and"
