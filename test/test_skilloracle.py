@@ -42,10 +42,18 @@ class TestSkillOracle(unittest.TestCase):
         assert None != oracle, "Failed to create oracle."
 
         # Verify that something was stood up on the port
+        # TODO: Comment this out
         assert True == oracle.check_socket(host=self.host, port=self.port),\
             "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
+            
+        # TODO: new check, by successfully tearing down the oracle we confirm that
+        # a) it started up and b) it was killed
+        # So, all we need to do is remove the assert True above and proceed directly with the below
 
         # Cool, we stood up the daemon, now we kill it
+        # TODO: Since we directly and test for successfully, tear down the oracle it 
+        # must have existsed. Finally the daemon check above is another check that it 
+        # was spawned.
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
