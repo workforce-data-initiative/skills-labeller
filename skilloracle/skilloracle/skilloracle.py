@@ -38,6 +38,11 @@ class SkillOracle(object):
         echo'ing to vw doesn't seem to consistently work. might be better
         to look at some kind of process list or echo a "1" or something
         """
+        
+        # For now we just return true, may remove or, if not, need
+        # to write a good unit test for it
+        return True
+    
         host = host
         if host == None:
             host = '127.0.0.1' # need some kind of a host to check
