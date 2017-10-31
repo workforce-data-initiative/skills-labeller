@@ -1,4 +1,5 @@
 import subprocess
+import time
 import shlex
 import socket
 from contextlib import closing
@@ -35,19 +36,26 @@ class SkillOracle(object):
         ret = None
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, int(port)))
-        s.sendall(content.encode())
-        s.shutdown(socket.SHUT_WR)
-        recv_buffer = []
-        while True:
-            data = s.recv(4096)
-            if not data:
-                break
-            recv_buffer.append(data)
-        s.close()
+        try:
+            s.connect((host, int(port)))
+            time.sleep(0.5)
+        except ConnectionResetError:
+            time.sleep(0.5)
+        else:
+            s.sendall(content.encode())
+            time.sleep(0.5)
+            s.shutdown(socket.SHUT_WR)
+            recv_buffer = []
+            while True:
+                data = s.recv(4096)
+                if not data:
+                    break
+                recv_buffer.append(data)
 
-        if 0 != len(recv_buffer):
-            ret = recv_buffer
+            if 0 != len(recv_buffer):
+                ret = recv_buffer
+
+        s.close()
 
         return ret
 
@@ -59,15 +67,18 @@ class SkillOracle(object):
 
         try:
             self.sendrecv(host, port, "1")
-        except ConnectionRefused:
+            time.sleep(0.5) # wait for a replay
+        except ConnectionRefusedError:
             pass
+        except ConnectionResetError:
+            pass # either exception indicates no vw exists
         else:
             ret = True
 
         return ret
 
     def kill(self, name='vw'):
-        ret = subprocess(shlex("killall vw"))
+        ret = subprocess.call(shlex.split('killall vw'))
         return ret == 0
 
     def PUT(self, label, name, context):
