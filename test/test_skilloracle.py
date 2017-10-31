@@ -16,18 +16,29 @@ class TestSkillOracle(unittest.TestCase):
         self.port = port
         self.host = host
 
-    def netcat(host, port, content):
+    def sendrecv(self, host, port, content):
+        """
+        This is a utlity function for interacting with TCP/IP services, like
+        any oracles.
+        """
+        ret = None
 
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.connect((host, int(port)))
-	s.sendall(content.encode())
-	s.shutdown(socket.SHUT_WR)
-	while True:
-	    data = s.recv(4096)
-	    if not data:
-		break
-	    print(repr(data))
-	s.close()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, int(port)))
+        s.sendall(content.encode())
+        s.shutdown(socket.SHUT_WR)
+        recv_buffer = []
+        while True:
+            data = s.recv(4096)
+            if not data:
+                break
+            recv_buffer.append(data)
+        s.close()
+
+        if 0 != len(recv_buffer):
+            ret = recv_buffer
+
+        return ret
 
     def teardown_all(self, name='vw'):
         """
@@ -60,18 +71,10 @@ class TestSkillOracle(unittest.TestCase):
         assert None != oracle, "Failed to create oracle."
 
         # Verify that something was stood up on the port
-        # TODO: Comment this out
         assert True == oracle.check_socket(host=self.host, port=self.port),\
             "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
 
-        # TODO: new check, by successfully tearing down the oracle we confirm that
-        # a) it started up and b) it was killed
-        # So, all we need to do is remove the assert True above and proceed directly with the below
-
         # Cool, we stood up the daemon, now we kill it
-        # TODO: Since we directly and test for successfully, tear down the oracle it
-        # must have existsed. Finally the daemon check above is another check that it
-        # was spawned.
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
