@@ -31,32 +31,43 @@ class SkillOracle(object):
                                       port=self.port,
                                       ip=self.host)
 
-    def check_socket(self, host=None, port=None):
-        """
-        todo: fix this function, i assumed it worked and it doesn't
+    def sendrecv(self, host, port, content):
+        ret = None
 
-        echo'ing to vw doesn't seem to consistently work. might be better
-        to look at some kind of process list or echo a "1" or something
-        """
-        
-        # For now we just return true, may remove or, if not, need
-        # to write a good unit test for it
-        return True
-    
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, int(port)))
+        s.sendall(content.encode())
+        s.shutdown(socket.SHUT_WR)
+        recv_buffer = []
+        while True:
+            data = s.recv(4096)
+            if not data:
+                break
+            recv_buffer.append(data)
+        s.close()
+
+        if 0 != len(recv_buffer):
+            ret = recv_buffer
+
+        return ret
+
+    def check_socket(self, host=None, port=None):
+        ret = False
         host = host
         if host == None:
             host = '127.0.0.1' # need some kind of a host to check
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            return sock.connect_ex((host, port)) == 0
+
+        try:
+            self.sendrecv(host, port, "1")
+        except ConnectionRefused:
+            pass
+        else:
+            ret = True
+
+        return ret
 
     def kill(self, name='vw'):
         ret = subprocess(shlex("killall vw"))
-        #for proc in psutil.process_iter():
-        #    if proc.name() == name:
-        #        proc.kill()
-        #        proc.wait() # let it clean up...
-        #        # continue, could be more...
-        #        ret = True
         return ret == 0
 
     def PUT(self, label, name, context):
@@ -72,5 +83,4 @@ class SkillOracle(object):
                        name_namespace="name",
                        name=name)
 
-        # note this is a raw send, need esacping for real use
         self.oracle.sendline(labelled_example)
