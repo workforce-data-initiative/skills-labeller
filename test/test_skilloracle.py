@@ -3,9 +3,6 @@ import unittest
 import requests
 import json
 from skilloracle import SkillOracle
-from contextlib import closing
-import psutil
-import socket
 import subprocess
 import shlex
 

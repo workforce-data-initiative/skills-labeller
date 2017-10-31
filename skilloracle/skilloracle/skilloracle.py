@@ -1,9 +1,6 @@
-import subprocess
 import time
+import subprocess
 import shlex
-import socket
-from contextlib import closing
-import psutil
 from wabbit_wappa.active_learner import DaemonVWProcess
 from wabbit_wappa import escape_vw_string
 
