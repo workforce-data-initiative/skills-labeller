@@ -39,7 +39,7 @@ class TestSkillOracle(unittest.TestCase):
         ret = oracle.kill()
         return ret
 
-    def test_create_and_destroy_daemon(self):
+    def test_create_and_destroy_oracle(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
 
@@ -47,7 +47,7 @@ class TestSkillOracle(unittest.TestCase):
         assert True == oracle.check_socket(host=self.host, port=self.port),\
             "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
 
-        # Cool, we stood up the daemon, now we kill it
+        # Cool, we stood up the oracle, now we kill it
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
