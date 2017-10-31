@@ -33,29 +33,28 @@ class SkillOracle(object):
                                       ip=self.host)
 
     def sendrecv(self, host, port, content):
+        """
+        We avoid a standard sockets based check because
+        there seems to be some interation between sockets, unittest
+        where .close doesn't really close and .connect doesn't through
+        see: https://github.com/requests/requests/issues/1882
+
+        I'm probably overlooking something simple but we favor the
+        echo, netcat strategy below for now. Note that w/o shell,
+        netcat also hangs like the socket approach. This
+        approach requires less resource management and debugging.
+        """
         ret = None
-
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        echo = subprocess.Popen(('echo', content), stdout=subprocess.PIPE)
         try:
-            s.connect((host, int(port)))
-            time.sleep(0.5)
-        except ConnectionResetError:
-            time.sleep(0.5)
+            nc = subprocess.check_output(('nc', host, str(port)),
+                                         stdin=echo.stdout,
+                                         shell=True,
+                                         timeout=10)
+        except subprocess.CalledProcessError:
+            ret = False # nothing listening on the port
         else:
-            s.sendall(content.encode())
-            time.sleep(0.5)
-            s.shutdown(socket.SHUT_WR)
-            recv_buffer = []
-            while True:
-                data = s.recv(4096)
-                if not data:
-                    break
-                recv_buffer.append(data)
-
-            if 0 != len(recv_buffer):
-                ret = recv_buffer
-
-        s.close()
+            ret = True
 
         return ret
 

@@ -16,33 +16,6 @@ class TestSkillOracle(unittest.TestCase):
         self.port = port
         self.host = host
 
-    def sendrecv(self, host, port, content):
-        ret = None
-
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            s.connect((host, int(port)))
-        except ConnectionResetError:
-            s.shutdown(socket.SHUT_WR)
-            time.sleep(0.5)
-            s.close()
-        else:
-            s.sendall(content.encode())
-            time.sleep(0.5)
-            s.shutdown(socket.SHUT_WR)
-            recv_buffer = []
-            while True:
-                data = s.recv(4096)
-                if not data:
-                    break
-                recv_buffer.append(data)
-            s.close()
-
-            if 0 != len(recv_buffer):
-                ret = recv_buffer
-
-        return ret
-
     def teardown_all(self, name='vw'):
         """
         Teardown all oracles
@@ -73,15 +46,14 @@ class TestSkillOracle(unittest.TestCase):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
 
-        ## Verify that something was stood up on the port
-        #assert True == oracle.check_socket(host=self.host, port=self.port),\
-        #    "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
+        # Verify that something was stood up on the port
+        assert True == oracle.check_socket(host=self.host, port=self.port),\
+            "Daemon failed to stand up on that host ({}), port ({})".format(self.host, self.port)
 
         # Cool, we stood up the daemon, now we kill it
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
-    #@unittest.skip('Skipping PUT while debugging')
     def test_PUT(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
