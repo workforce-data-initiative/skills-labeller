@@ -1,6 +1,10 @@
+# This file is a WIP
+# It will 'tie' together the DB, Preprocessor, Frontend, Skill Oracle Dockerfiles
+# and present an easy to use (e.g., `docker-compse up`) interface for standing
+# the entire system up on a personal system
 version: '3'
 services:
-  preprocessor:
+  skilloracle:
     image: skilloracle:latest
     ports:
         - "4000:4000"
