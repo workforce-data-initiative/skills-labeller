@@ -10,3 +10,4 @@ gunicorn==19.7.1
 werkzeug==0.12.2
 psutil==5.4.0
 git+https://github.com/robinsonkwame/wabbit_wappa#egg=wabbit_wappa
+pytest==3.2.3

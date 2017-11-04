@@ -30,6 +30,8 @@ ADD setup.py setup.py
 
 # Install specific dependencies
 RUN pip install -r skilloracle/requirements.txt
+# Install any OS utilities needed
+RUN apt-get -y install psmisc 
 
 #RUN chmod a+x run.sh
 #ENTRYPOINT ["./run.sh"]
