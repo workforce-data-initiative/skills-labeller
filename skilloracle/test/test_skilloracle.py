@@ -62,3 +62,6 @@ class TestSkillOracle(unittest.TestCase):
                             a positive attitude.")
 
         self.teardown_oracle(oracle=oracle)
+
+    # This section tests GET related functionality
+    # Assumes that an instance of Redis is accessible via local host, on the default port

@@ -3,6 +3,7 @@ import subprocess
 import shlex
 from wabbit_wappa.active_learner import DaemonVWProcess
 from wabbit_wappa import escape_vw_string
+import redis
 
 
 VW_HOST='127.0.0.1'
@@ -28,6 +29,8 @@ class SkillOracle(object):
         self.oracle = DaemonVWProcess(command=self.cmd,
                                       port=self.port,
                                       ip=self.host)
+
+        self.redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379 db=0
 
     def sendrecv(self, host, port, content):
         """
@@ -64,10 +67,6 @@ class SkillOracle(object):
         try:
             self.sendrecv(host, port, "1")
             time.sleep(0.5) # wait for a replay
-        except ConnectionRefusedError:
-            pass
-        except ConnectionResetError:
-            pass # either exception indicates no vw exists
         else:
             ret = True
 
@@ -91,3 +90,24 @@ class SkillOracle(object):
                        name=name)
 
         self.oracle.sendline(labelled_example)
+
+    def GET(self):
+        # see: https://groups.google.com/forum/#!topic/redis-db/ur9U8o-Sko0
+        # todo: wrap in MULTI/EXEC for atomic zpop w/o watch related contention
+        # todo: wrap in pipeline
+        response = self.redis_db.zrange(self.SKILL_CANDITATES,
+                             -1,
+                             -1,
+                             withscores=True)
+        self.redis_db.zremrangebyrank(self.SKILL_CANDITATES,
+                                      -1,
+                                      -1)
+        pass
+
+    def __setup(self):
+        raise NotImplementedError
+
+
+    def __get(self):
+
+        pass
