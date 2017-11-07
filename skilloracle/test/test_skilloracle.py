@@ -5,6 +5,7 @@ import json
 from skilloracle import SkillOracle
 import subprocess
 import shlex
+import redis
 
 class TestSkillOracle(unittest.TestCase):
     """ Unit test for job preprocessor """
@@ -39,6 +40,7 @@ class TestSkillOracle(unittest.TestCase):
         ret = oracle.kill()
         return ret
 
+    @unittest.skip('Skip create, destroy...')
     def test_create_and_destroy_oracle(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -51,6 +53,7 @@ class TestSkillOracle(unittest.TestCase):
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
+    @unittest.skip('Skip PUT...')
     def test_PUT(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -65,3 +68,26 @@ class TestSkillOracle(unittest.TestCase):
 
     # This section tests GET related functionality
     # Assumes that an instance of Redis is accessible via local host, on the default port
+    def test_GET(self, encoding="utf-8"):
+        oracle = self.standup_new_oracle(port=self.port)
+        assert None != oracle, "Failed to create oracle."
+
+        # note: we use a string as a key but in production keys are likely to be
+        # skill ids
+        encoding=encoding
+        key = "ability to accept and learn from criticism"
+        importance = 1.23
+
+        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379, db=SKILL_CANDIDATES
+        redis_db.zadd(oracle.SKILL_CANDIDATES,
+                      importance,
+                      key)
+
+        response, num_popped = oracle.GET() # assumes Redis on localhost, default port
+        key_with_score = response[0]
+
+        assert key == key_with_score[0].decode(encoding), 'Oracle GET did not return added key'
+        assert importance == key_with_score[1], 'Oracle GET did not return added score'
+        assert num_popped == 1, 'Oracle GET did not return expected number items popped (1)'
+
+        self.teardown_oracle(oracle=oracle)

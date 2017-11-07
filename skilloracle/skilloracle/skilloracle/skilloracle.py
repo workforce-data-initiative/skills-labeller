@@ -17,6 +17,7 @@ class SkillOracle(object):
                  host=None,
                  port=None,
                  cmd=" ".join([VW_CMD, VW_ARGS])):
+        self.SKILL_CANDIDATES = "canditates" # backing for ordered importances
         self.cmd = cmd
         self.host = host
         self.port = port
@@ -64,11 +65,9 @@ class SkillOracle(object):
         if host == None:
             host = '127.0.0.1' # need some kind of a host to check
 
-        try:
-            self.sendrecv(host, port, "1")
-            time.sleep(0.5) # wait for a replay
-        else:
-            ret = True
+        self.sendrecv(host, port, "1")
+        time.sleep(0.5) # wait for a replay
+        ret = True
 
         return ret
 
@@ -92,22 +91,26 @@ class SkillOracle(object):
         self.oracle.sendline(labelled_example)
 
     def GET(self):
+        response = self.__get_redis()
+        return response
+
+    def __setup_redis(self):
+        raise NotImplementedError
+
+    def __get_redis(self):
         # see: https://groups.google.com/forum/#!topic/redis-db/ur9U8o-Sko0
         # todo: wrap in MULTI/EXEC for atomic zpop w/o watch related contention
         # todo: wrap in pipeline
-        response = self.redis_db.zrange(self.SKILL_CANDITATES,
+        ret = True
+        pipe = self.redis_db.pipeline()# runs w/in multi/exec, atomic, on Redis
+
+        pipe.zrange(self.SKILL_CANDIDATES,
+                    -1,
+                    -1,
+                    withscores=True)
+        pipe.zremrangebyrank(self.SKILL_CANDIDATES,
                              -1,
-                             -1,
-                             withscores=True)
-        self.redis_db.zremrangebyrank(self.SKILL_CANDITATES,
-                                      -1,
-                                      -1)
-        pass
+                             -1) # i assume this returns
+        response = pipe.execute()
 
-    def __setup(self):
-        raise NotImplementedError
-
-
-    def __get(self):
-
-        pass
+        return response
