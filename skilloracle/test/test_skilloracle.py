@@ -73,21 +73,55 @@ class TestSkillOracle(unittest.TestCase):
         assert None != oracle, "Failed to create oracle."
 
         # note: we use a string as a key but in production keys are likely to be
-        # skill ids
+        # skill ids, that are given to the UI for fetching (?)
         encoding=encoding
-        key = "ability to accept and learn from criticism"
+        key = "ability to accept and learn from criticism" # todo: encode w encoding?
         importance = 1.23
 
-        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379, db=SKILL_CANDIDATES
+        # Set up redis with one candidate, flush all others
+        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379
+        redis_db.flushall() # clean slate
         redis_db.zadd(oracle.SKILL_CANDIDATES,
                       importance,
                       key)
 
-        response, num_popped = oracle.GET() # assumes Redis on localhost, default port
+        response, _, size = oracle.GET()
         key_with_score = response[0]
 
         assert key == key_with_score[0].decode(encoding), 'Oracle GET did not return added key'
         assert importance == key_with_score[1], 'Oracle GET did not return added score'
-        assert num_popped == 1, 'Oracle GET did not return expected number items popped (1)'
+        assert size == 0, 'Oracle GET did not return expected number items (0)'
 
+        redis_db.flushall() # clean the slate
+        # redis_db.shutdown() # can't really do this since we didn't start it up
+        self.teardown_oracle(oracle=oracle)
+
+    def test_fetch_push_more(self):
+        # could be a database connection that yields candidates
+        fetcher = [
+                    {'name': "ability to accept and learn from criticism",
+                     'context': "furthermore, some accomplishments that I\
+                    have gained is having the and always have\
+                     a positive attitude."},\
+                    {'name': "reading",
+                     'context': "desired candidate will be for many hours a day."}
+                  ]
+        expected_size = len(fetcher)
+
+        oracle = self.standup_new_oracle(port=self.port)
+        assert None != oracle, "Failed to create oracle."
+
+        # Set up redis with one candidate, flush all others
+        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379
+        redis_db.flushall() # clean slate
+
+        oracle.fetch_push_more(fetcher=fetcher)
+
+        size = redis_db.zcard(oracle.SKILL_CANDIDATES)
+
+        assert expected_size == size, "Was not able to expected number of fetch_push_more\
+                                            items onto candidate data store!"
+
+        # Shutdown candidate store
+        redis_db.flushall() # clean the slate
         self.teardown_oracle(oracle=oracle)

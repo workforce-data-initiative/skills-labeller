@@ -17,7 +17,7 @@ class SkillOracle(object):
                  host=None,
                  port=None,
                  cmd=" ".join([VW_CMD, VW_ARGS])):
-        self.SKILL_CANDIDATES = "canditates" # backing for ordered importances
+        self.SKILL_CANDIDATES = "candidates" # backing for ordered importances
         self.cmd = cmd
         self.host = host
         self.port = port
@@ -48,7 +48,7 @@ class SkillOracle(object):
         ret = None
         echo = subprocess.Popen(('echo', content), stdout=subprocess.PIPE)
         try:
-            nc = subprocess.check_output(('nc', host, str(port)),
+            nc = subprocess.check_output(('netcat', host, str(port)),
                                          stdin=echo.stdout,
                                          shell=True,
                                          timeout=10)
@@ -76,19 +76,33 @@ class SkillOracle(object):
         return ret == 0
 
     def PUT(self, label, name, context):
-        label = escape_vw_string(label)
+        response = None
+
+        # todo: I think this function expects a string array
         name = escape_vw_string(name)
         context = escape_vw_string(context)
 
-        labelled_example = "{label} |{context_namespace} {context} \
-                                    |{name_namespace} {name}".\
-                format(label=label,
-                       context_namespace="context",
-                       context=context,
-                       name_namespace="name",
-                       name=name)
+        if label:
+            label = escape_vw_string(label)
+            labelled_example = "{label} |{context_namespace} {context} \
+                                        |{name_namespace} {name}".\
+                    format(label=label,
+                           context_namespace="context",
+                           context=context,
+                           name_namespace="name",
+                           name=name)
+        else:
+            labelled_example = "|{context_namespace} {context} \
+                                |{name_namespace} {name}".\
+                    format(context_namespace="context",
+                           context=context,
+                           name_namespace="name",
+                           name=name)
 
-        self.oracle.sendline(labelled_example)
+            self.oracle.sendline(labelled_example)
+            response = self.oracle._recvline()
+
+        return response
 
     def GET(self):
         response = self.__get_redis()
@@ -99,9 +113,7 @@ class SkillOracle(object):
 
     def __get_redis(self):
         # see: https://groups.google.com/forum/#!topic/redis-db/ur9U8o-Sko0
-        # todo: wrap in MULTI/EXEC for atomic zpop w/o watch related contention
-        # todo: wrap in pipeline
-        ret = True
+        response = None
         pipe = self.redis_db.pipeline()# runs w/in multi/exec, atomic, on Redis
 
         pipe.zrange(self.SKILL_CANDIDATES,
@@ -110,7 +122,33 @@ class SkillOracle(object):
                     withscores=True)
         pipe.zremrangebyrank(self.SKILL_CANDIDATES,
                              -1,
-                             -1) # i assume this returns
+                             -1)
+        pipe.zcard(self.SKILL_CANDIDATES)
         response = pipe.execute()
 
         return response
+
+    def fetch_push_more(self, fetcher=None):
+        # can subclass to provide your own call/code
+        self.__fetch_push_more(fetcher=fetcher)
+
+    def __fetch_push_more(self, fetcher=None):
+        """
+        Fetches more data using the provided `fetcher` (typically a candidtate db
+        connection), passes through skill oracle for importances, pushes to the
+        candidate store
+        """
+
+        # note: there is a way to batch up canditates and send in bulk
+        # but that would take more effort to implement, may not
+        # be needed?
+        for candidate in fetcher:
+            label = None
+            name = candidate['name']
+            context = candidate['context']
+
+            response = self.PUT(label, name, context)
+
+            self.redis_db.zadd(self.SKILL_CANDIDATES,
+                               response.importance,
+                               name)
