@@ -1,5 +1,6 @@
 """ Unit test for job posting preprocessor """
-import unittest
+import time
+import unittest # why is this here?
 import requests
 import json
 from skilloracle import SkillOracle
@@ -89,7 +90,7 @@ class TestSkillOracle(unittest.TestCase):
         key_with_score = response[0]
 
         assert key == key_with_score[0].decode(encoding), 'Oracle GET did not return added key'
-        assert importance == key_with_score[1], 'Oracle GET did not return added score'
+        assert importance == key_with_score[1], 'Oracle GET did not return added score/importance'
         assert size == 0, 'Oracle GET did not return expected number items (0)'
 
         redis_db.flushall() # clean the slate
@@ -119,8 +120,60 @@ class TestSkillOracle(unittest.TestCase):
 
         size = redis_db.zcard(oracle.SKILL_CANDIDATES)
 
-        assert expected_size == size, "Was not able to expected number of fetch_push_more\
+        assert expected_size == size, "Was not able to push expected number of fetch_push_more\
                                             items onto candidate data store!"
+
+        # Shutdown candidate store
+        redis_db.flushall() # clean the slate
+        self.teardown_oracle(oracle=oracle)
+
+    def test_push_once(self):
+        # could be a database connection that yields candidates
+        fetcher = [
+                    {'name': "ability to accept and learn from criticism",
+                     'context': "furthermore, some accomplishments that I\
+                    have gained is having the and always have\
+                     a positive attitude."},\
+                    {'name': "reading",
+                     'context': "desired candidate will be for many hours a day."}
+                  ]
+        expected_size = len(fetcher)
+
+        oracle = self.standup_new_oracle(port=self.port)
+        assert None != oracle, "Failed to create oracle."
+
+        # Set up redis with one candidate, flush all others
+        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379
+        redis_db.flushall() # clean slate, size is zero
+
+        # so we start w an empty candidate store, and we push stuff onto it with a
+        # a really long period ...
+        threshold = 1
+        period = 60*2 # 2 minutes, very long for this test
+
+        start = time.time()
+        oracle._push_once(size=0, threshold=threshold, fetcher=fetcher, period=period)
+
+        stop = time.time()
+
+        assert stop-start < period, "Took longer than period time to call `_push_once`! Can't run test."
+
+        # Test sequential push, within time period
+        oracle._push_once(size=0, threshold=threshold, fetcher=fetcher, period=period)
+        stop2 = time.time()
+
+        # Check that we attempt to push twice w/in the period of time given, testing that only
+        # one push makes it though...
+        assert stop2-start < period, "Took longer than period time to call second `_push_once`! Can't run test."
+
+        # So, we tried to push twice within the period window, but the candidate
+        # store should the same as expected size, not 2* expected size
+
+        size = redis_db.zcard(oracle.SKILL_CANDIDATES)
+
+        assert expected_size == size, "Did not push expected number of\
+                                       items items onto candidate data\
+                                       store ({num})!".format(num=size)
 
         # Shutdown candidate store
         redis_db.flushall() # clean the slate

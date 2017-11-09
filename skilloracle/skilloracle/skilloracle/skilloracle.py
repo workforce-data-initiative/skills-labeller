@@ -1,4 +1,5 @@
 import time
+import datetime
 import subprocess
 import shlex
 from wabbit_wappa.active_learner import DaemonVWProcess
@@ -18,6 +19,7 @@ class SkillOracle(object):
                  port=None,
                  cmd=" ".join([VW_CMD, VW_ARGS])):
         self.SKILL_CANDIDATES = "candidates" # backing for ordered importances
+        self.TIMESTAMP = "timestamp" # string of last timestamp value
         self.cmd = cmd
         self.host = host
         self.port = port
@@ -105,6 +107,8 @@ class SkillOracle(object):
         return response
 
     def GET(self):
+        # note: __get_redis() shoudl be cleaned up
+        # just return importance, key/skill candidate
         response = self.__get_redis()
         return response
 
@@ -149,6 +153,41 @@ class SkillOracle(object):
 
             response = self.PUT(label, name, context)
 
+            decoded = response.decode().split()
+            estimate = decoded[0]
+            importance = float(decoded[1])
+
             self.redis_db.zadd(self.SKILL_CANDIDATES,
-                               response.importance,
+                               importance,
                                name)
+
+    def _push_once(self, size, threshold, fetcher=None, period=60):
+        """
+        Utlity function to push new candidates for GET to return
+        where pushing happens once per period seconds (default 1 minute)
+
+        This is done to control the feedback loop between
+        multiple GET and _fetch_push_more() when the candidate store
+        is low and many _fetch_push_more calls are triggered when
+        just one successful call would replenish the candidate store.
+
+        The timestamp is assumed to be in epoch time, e.g. time.gmtime()
+
+        note: there are some system assumptions embedded inthis function:
+            * that we can push all the candidate skills in the period time
+            * generally, in a given period, that the GET rate is a lot less
+            than the fetch rate (if you think of this like a queue, that we
+            can always fill it back up in time)
+        """
+
+        if size < threshold:# push more candidates
+            timestamp = self.redis_db.get(self.TIMESTAMP)
+            if not timestamp: # is nil
+                timestamp = -1
+            else:
+                timestamp = float(timestamp) # should be time obj?
+
+            if time.time() - timestamp > period:
+                # prevent other calls from entering until period has elapsed
+                self.redis_db.set(self.TIMESTAMP, str(time.time()))
+                self.fetch_push_more(fetcher=fetcher)
