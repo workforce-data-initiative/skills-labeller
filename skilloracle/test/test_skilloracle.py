@@ -41,7 +41,7 @@ class TestSkillOracle(unittest.TestCase):
         ret = oracle.kill()
         return ret
 
-    @unittest.skip('Skip create, destroy...')
+    #@unittest.skip('Skip create, destroy...')
     def test_create_and_destroy_oracle(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -54,7 +54,7 @@ class TestSkillOracle(unittest.TestCase):
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
-    @unittest.skip('Skip PUT...')
+    #@unittest.skip('Skip PUT...')
     def test_PUT(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
