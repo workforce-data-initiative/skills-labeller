@@ -5,7 +5,7 @@ container or dev/test mode.
 
 import os
 from werkzeug.serving import run_simple
-from skilloracle import app
+from api import app
 
 # Environment configuration
 API_PORT = os.getenv('API_PORT', 4000)

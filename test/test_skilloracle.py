@@ -1,9 +1,9 @@
-""" Unit test for job posting preprocessor """
+""" Unit test for skill oracle """
 import time
-import unittest # why is this here?
+import unittest
 import requests
 import json
-from skilloracle import SkillOracle
+from skilloracle.skilloracle import SkillOracle
 import subprocess
 import shlex
 import redis
@@ -14,6 +14,7 @@ class TestSkillOracle(unittest.TestCase):
     def setUp(self, port=7000, host='127.0.0.1'):
         self.port = port
         self.host = host
+        self.redis = "redis"
 
     def teardown_all(self, name='vw'):
         """
@@ -80,7 +81,7 @@ class TestSkillOracle(unittest.TestCase):
         importance = 1.23
 
         # Set up redis with one candidate, flush all others
-        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379
+        redis_db = redis.StrictRedis(self.redis)# defaults to redis:6379
         redis_db.flushall() # clean slate
         redis_db.zadd(oracle.SKILL_CANDIDATES,
                       importance,

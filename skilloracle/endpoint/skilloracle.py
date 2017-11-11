@@ -7,7 +7,7 @@ import logging
 try:
     from skilloracle import SkillOracle
 except:
-    from ..skilloracle.skilloracle import SkillOracle
+    from ..skilloracle import SkillOracle
 
 class SkillOracleEndpoint(object):
     def __init__(self, fetcher=None):
@@ -34,6 +34,7 @@ class SkillOracleEndpoint(object):
         response = self.oracle.GET()
         self.oracle.fetch_push_more(fetcher=self.fetcher)
 
+        # Note tested to date, need to resolve fetcher/db access
         candidate = response[0]
         context = response[1]
         importance = response[2]

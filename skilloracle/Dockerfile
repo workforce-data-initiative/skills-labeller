@@ -18,18 +18,17 @@ RUN apt-get update && apt-get -y upgrade &&\
 RUN pip3 install --upgrade pip setuptools
 
 WORKDIR ./skilloracle
+COPY ../test test
 COPY bin bin
 COPY skilloracle skilloracle
-COPY test test
+COPY api api
+COPY endpoint endpoint
 
 ADD webserver.py webserver.py
 ADD run.sh run.sh
-ADD Procfile Procfile
-ADD runtime.txt runtime.txt
-ADD setup.py setup.py
 
 # Install specific dependencies
-RUN pip install -r skilloracle/requirements.txt
+RUN pip install -r requirements.txt
 # Install any OS utilities needed
 RUN apt-get -y install psmisc 
 
