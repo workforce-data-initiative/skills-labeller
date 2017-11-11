@@ -34,7 +34,7 @@ class SkillOracle(object):
                                       port=self.port,
                                       ip=self.host)
 
-        self.redis_db = redis.StrictRedis(host=self.redis)# defaults to redis:6379
+        self.redis_db = redis.StrictRedis(host=self.REDIS)# defaults to redis:6379
 
     def sendrecv(self, host, port, content):
         """
@@ -51,7 +51,8 @@ class SkillOracle(object):
         ret = None
         echo = subprocess.Popen(('echo', content), stdout=subprocess.PIPE)
         try:
-            nc = subprocess.check_output(('netcat', host, str(port)),
+            # '-q 1' causes netcat to quit after EOF or 1 second
+            nc = subprocess.check_output(('netcat', '-q 1', host, str(port)),
                                          stdin=echo.stdout,
                                          shell=True,
                                          timeout=10)
@@ -66,7 +67,7 @@ class SkillOracle(object):
         ret = False
         host = host
         if host == None:
-            host = self.redis # need some kind of a host to check
+            host = self.host # need some kind of a host to check
 
         ret = self.sendrecv(host, port, "1")
 
@@ -121,7 +122,7 @@ class SkillOracle(object):
         like labelled).
 
         Typically this would be done in Redis with a special z set (ordered set)
-        reverse pop function, called ZPOP. However this function is not implemented
+        reverse pop function, called ZREVPOP. However this function is not implemented
         in python's redis library, mainly because it can be acheived with
         a couple of other z set functions: zrange and zremrangebyrank
 
@@ -140,9 +141,13 @@ class SkillOracle(object):
         across two examples. If this does not hold then what will happen is that all
         items of the same importance will be popped.
 
-        It is possible at the start of the skill oralce, since most everything is unknown,
+        It is possible at the start of the skill oracle, since most everything is unknown,
         that multiple items are popped off. However, as active learning continues
         the chance that any two items share the a same importance should become very unlikely.
+
+        Since the main purpose of the skilloracle is to faciliate large scale skill labelling,
+        and not accuracy and other metrics, it seems prudent to tolerate this uncertainity
+        instead of creating custom lua scripts or otherwise working with Redis more.
 
         see: https://github.com/antirez/redis/issues/180 for workarounds if this is an
         issue in the steady state of the skill oracle

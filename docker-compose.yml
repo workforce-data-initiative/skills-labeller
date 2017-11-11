@@ -8,5 +8,6 @@ services:
       dockerfile: ./skilloracle/Dockerfile
     depends_on:
         - redis
+    tty: true
   redis:
     image: redis

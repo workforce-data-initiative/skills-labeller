@@ -18,11 +18,12 @@ RUN apt-get update && apt-get -y upgrade &&\
 RUN pip3 install --upgrade pip setuptools
 
 WORKDIR ./skilloracle
-COPY ./test test
 COPY ./skilloracle/bin bin
 COPY ./skilloracle/skilloracle skilloracle
 COPY ./skilloracle/api api
 COPY ./skilloracle/endpoint endpoint
+# copy above skilloralcle to main correct unittest directory structure
+COPY ./test /test
 
 ADD ./skilloracle/requirements.txt requirements.txt
 ADD ./skilloracle/webserver.py webserver.py
@@ -32,6 +33,8 @@ ADD ./skilloracle/run.sh run.sh
 RUN pip install -r requirements.txt
 # Install any OS utilities needed
 RUN apt-get -y install psmisc 
+RUN apt-get -y install netcat
 
-#RUN chmod a+x run.sh
+RUN chmod a+x run.sh
+ENTRYPOINT ["/bin/bash"]
 #ENTRYPOINT ["./run.sh"]
