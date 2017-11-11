@@ -18,14 +18,15 @@ RUN apt-get update && apt-get -y upgrade &&\
 RUN pip3 install --upgrade pip setuptools
 
 WORKDIR ./skilloracle
-COPY ../test test
-COPY bin bin
-COPY skilloracle skilloracle
-COPY api api
-COPY endpoint endpoint
+COPY ./test test
+COPY ./skilloracle/bin bin
+COPY ./skilloracle/skilloracle skilloracle
+COPY ./skilloracle/api api
+COPY ./skilloracle/endpoint endpoint
 
-ADD webserver.py webserver.py
-ADD run.sh run.sh
+ADD ./skilloracle/requirements.txt requirements.txt
+ADD ./skilloracle/webserver.py webserver.py
+ADD ./skilloracle/run.sh run.sh
 
 # Install specific dependencies
 RUN pip install -r requirements.txt

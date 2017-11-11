@@ -1,16 +1,12 @@
 # This file is a WIP
-# It will 'tie' together the DB, Preprocessor, Frontend, Skill Oracle Dockerfiles
-# and present an easy to use (e.g., `docker-compse up`) interface for standing
-# the entire system up on a personal system
-#
-version: '3'
+version: '3.2'
 services:
   skilloracle:
     image: skilloracle:latest
     build:
       context: ./
       dockerfile: ./skilloracle/Dockerfile
-    depends-on:
-      - redis
+    depends_on:
+        - redis
   redis:
     image: redis
