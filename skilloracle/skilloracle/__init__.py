@@ -66,11 +66,9 @@ class SkillOracle(object):
         ret = False
         host = host
         if host == None:
-            host = '127.0.0.1' # need some kind of a host to check
+            host = self.redis # need some kind of a host to check
 
-        self.sendrecv(host, port, "1")
-        time.sleep(0.5) # wait for a replay
-        ret = True
+        ret = self.sendrecv(host, port, "1")
 
         return ret
 
@@ -117,6 +115,38 @@ class SkillOracle(object):
         raise NotImplementedError
 
     def __get_redis(self):
+        """
+        __get_redis is an important utility function that pops off the candidate
+        of highest importance (e.g., in active learning, the example we would most
+        like labelled).
+
+        Typically this would be done in Redis with a special z set (ordered set)
+        reverse pop function, called ZPOP. However this function is not implemented
+        in python's redis library, mainly because it can be acheived with
+        a couple of other z set functions: zrange and zremrangebyrank
+
+        The code below sets up a pipeline, an ordered set of redis commands that are
+        executely atomically as a group. The commands used, referring to the google
+        group link for more discussion, are:
+
+        zrange - get the item with the highest score, as inidcated by -1
+        zremrangebyrank - remove the item with highest score, as indicated by -1
+
+        Finally, we return the size of the ordered z set, to help with fetching more
+        examples when neccessary.
+
+        note: the fact that we're popping the item of highest importance assumes that
+        the importances are unique, that is, you can't have importances of 1.0 and 1.0
+        across two examples. If this does not hold then what will happen is that all
+        items of the same importance will be popped.
+
+        It is possible at the start of the skill oralce, since most everything is unknown,
+        that multiple items are popped off. However, as active learning continues
+        the chance that any two items share the a same importance should become very unlikely.
+
+        see: https://github.com/antirez/redis/issues/180 for workarounds if this is an
+        issue in the steady state of the skill oracle
+        """
         # see: https://groups.google.com/forum/#!topic/redis-db/ur9U8o-Sko0
         response = None
         pipe = self.redis_db.pipeline()# runs w/in multi/exec, atomic, on Redis
