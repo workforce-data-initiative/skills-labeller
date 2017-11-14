@@ -1,4 +1,5 @@
-FROM openjdk:7-jdk
+#FROM openjdk:7-jdk
+FROM picoded/ubuntu-openjdk-8-jdk:16.04
 MAINTAINER "Kwame Porter Robinson" kporterrobinson@gmail.com
 
 RUN apt-get update &&\
@@ -22,7 +23,7 @@ COPY ./skilloracle/bin bin
 COPY ./skilloracle/skilloracle skilloracle
 COPY ./skilloracle/api api
 COPY ./skilloracle/endpoint endpoint
-# copy above skilloralcle to main correct unittest directory structure
+# copy above skilloracle to main correct unittest directory structure
 COPY ./test /test
 
 ADD ./skilloracle/requirements.txt requirements.txt
