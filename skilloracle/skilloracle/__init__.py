@@ -52,7 +52,8 @@ class SkillOracle(object):
         echo = subprocess.Popen(('echo', content), stdout=subprocess.PIPE)
         try:
             # '-q 1' causes netcat to quit after EOF or 1 second
-            nc = subprocess.check_output(('netcat', '-q 1', host, str(port)),
+            cmd = " ".join(('netcat', '-q 1', host, str(port)))
+            nc = subprocess.check_output(cmd,
                                          stdin=echo.stdout,
                                          shell=True,
                                          timeout=10)
@@ -94,7 +95,7 @@ class SkillOracle(object):
                            name_namespace="name",
                            name=name)
         else:
-            labelled_example = "|{context_namespace} {context} \
+            labelled_example = " |{context_namespace} {context} \
                                 |{name_namespace} {name}".\
                     format(context_namespace="context",
                            context=context,
@@ -104,7 +105,16 @@ class SkillOracle(object):
             self.oracle.sendline(labelled_example)
             response = self.oracle._recvline()
 
-        return response
+        if response:
+            result = response.split()
+            importance = 0
+
+            if len(result) == 2:
+                importance = result[1]
+
+            response = {'importance': importance,
+                        'prediction': result[0]}
+            return response
 
     def GET(self):
         # note: __get_redis() shoudl be cleaned up
@@ -151,6 +161,10 @@ class SkillOracle(object):
 
         see: https://github.com/antirez/redis/issues/180 for workarounds if this is an
         issue in the steady state of the skill oracle
+
+        note2: given the first note, a simpler (but hacky) fix may be to randomly perturb the
+        lower bits (least significant) of the returned importance, e.g. importance + np.random.uniform(1e-4, 1e-6)
+        to force probablistic uniqueness w/o messing up the active learning too much (I assume)
         """
         # see: https://groups.google.com/forum/#!topic/redis-db/ur9U8o-Sko0
         response = None
@@ -189,9 +203,8 @@ class SkillOracle(object):
 
             response = self.PUT(label, name, context)
 
-            decoded = response.decode().split()
-            estimate = decoded[0]
-            importance = float(decoded[1])
+            prediction = response['prediction']
+            importance = float(response['importance'])
 
             self.redis_db.zadd(self.SKILL_CANDIDATES,
                                importance,

@@ -32,7 +32,8 @@ class TestSkillOracle(unittest.TestCase):
         assert True == ret or False == ret, "Could not shutdown existing/non existing oracle instances"
 
         # Now stand up an oracle on the given port. host is None, defaults to local host
-        oracle = SkillOracle(port=self.port) # stands up a daemon
+        oracle = SkillOracle(host='127.0.0.1',
+                             port=self.port) # stands up a daemon
         return oracle
 
     def teardown_oracle(self, oracle=None):
@@ -114,7 +115,7 @@ class TestSkillOracle(unittest.TestCase):
         assert None != oracle, "Failed to create oracle."
 
         # Set up redis with one candidate, flush all others
-        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379
+        redis_db = redis.StrictRedis(self.redis)# defaults to redis:6379
         redis_db.flushall() # clean slate
 
         oracle.fetch_push_more(fetcher=fetcher)
@@ -144,7 +145,7 @@ class TestSkillOracle(unittest.TestCase):
         assert None != oracle, "Failed to create oracle."
 
         # Set up redis with one candidate, flush all others
-        redis_db = redis.StrictRedis()# defaults to 127.0.0.1:6379
+        redis_db = redis.StrictRedis(self.redis)# defaults to redis:6379
         redis_db.flushall() # clean slate, size is zero
 
         # so we start w an empty candidate store, and we push stuff onto it with a

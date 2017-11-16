@@ -24,7 +24,7 @@ COPY ./skilloracle/skilloracle skilloracle
 COPY ./skilloracle/api api
 COPY ./skilloracle/endpoint endpoint
 # copy above skilloracle to main correct unittest directory structure
-COPY ./test /test
+COPY ./test ./test
 
 ADD ./skilloracle/requirements.txt requirements.txt
 ADD ./skilloracle/webserver.py webserver.py
