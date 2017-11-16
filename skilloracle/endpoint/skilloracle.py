@@ -9,6 +9,8 @@ try:
 except:
     from ..skilloracle import SkillOracle
 
+
+# This endpoint is WIP
 class SkillOracleEndpoint(object):
     def __init__(self, fetcher=None):
         self.oracle = SkillOracle(port=7000)
@@ -35,8 +37,8 @@ class SkillOracleEndpoint(object):
         self.oracle.fetch_push_more(fetcher=self.fetcher)
 
         # Note tested to date, need to resolve fetcher/db access
-        candidate = response[0]
-        context = response[1]
+        candidate = response['candidate skill']
+        context = response['']# todo: fix __fetch_push_more to also push the context
         importance = response[2]
 
         resp.body = json.dumps({'skilloracle' :\

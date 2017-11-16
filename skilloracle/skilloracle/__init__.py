@@ -180,7 +180,9 @@ class SkillOracle(object):
         pipe.zcard(self.SKILL_CANDIDATES)
         response = pipe.execute()
 
-        return response
+        return {'candidate skill': response[0],
+                'importance': response[1],
+                'number of candidates': response[-1]}
 
     def fetch_push_more(self, fetcher=None):
         # can subclass to provide your own call/code
@@ -188,6 +190,9 @@ class SkillOracle(object):
 
     def __fetch_push_more(self, fetcher=None):
         """
+        WIP: Need to also push the context so that the users can see on
+        GET()
+
         Fetches more data using the provided `fetcher` (typically a candidtate db
         connection), passes through skill oracle for importances, pushes to the
         candidate store
