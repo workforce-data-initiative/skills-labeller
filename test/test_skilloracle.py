@@ -88,12 +88,11 @@ class TestSkillOracle(unittest.TestCase):
                       importance,
                       key)
 
-        response, _, size = oracle.GET()
-        key_with_score = response[0]
+        response = oracle.GET()
 
-        assert key == key_with_score[0].decode(encoding), 'Oracle GET did not return added key'
-        assert importance == key_with_score[1], 'Oracle GET did not return added score/importance'
-        assert size == 0, 'Oracle GET did not return expected number items (0)'
+        assert key == response['candidate skill'], 'Oracle GET did not return added key'
+        assert importance == response['importance'], 'Oracle GET did not return added score/importance'
+        assert 0 == response['number of candidates'], 'Oracle GET did not return expected number items (0)'
 
         redis_db.flushall() # clean the slate
         # redis_db.shutdown() # can't really do this since we didn't start it up

@@ -178,11 +178,12 @@ class SkillOracle(object):
                              -1,
                              -1)
         pipe.zcard(self.SKILL_CANDIDATES)
-        response = pipe.execute()
+        candidate_response, _, size = pipe.execute()
+        candidate_response = candidate_response[0] # flatten the redis zrange() response
 
-        return {'candidate skill': response[0],
-                'importance': response[1],
-                'number of candidates': response[-1]}
+        return {'candidate skill': candidate_response[0].decode(),
+                'importance': candidate_response[1],
+                'number of candidates': size}
 
     def fetch_push_more(self, fetcher=None):
         # can subclass to provide your own call/code
