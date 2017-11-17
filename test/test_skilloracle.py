@@ -61,16 +61,29 @@ class TestSkillOracle(unittest.TestCase):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
 
-        oracle.PUT(label="1",
-                   name="ability to accept and learn from criticism",
-                   context="furthermore, some accomplishments that I\
-                            have gained is having the and always have\
-                            a positive attitude.")
+        response = oracle.PUT(label="1",
+                      name="ability to accept and learn from criticism",
+                      context="furthermore, some accomplishments that I\
+                               have gained is having the and always have\
+                               a positive attitude.")
+
+        assert 'importance' in response, 'PUT response has no importance!'
+
+        response = oracle.PUT(label=None,
+                      name="ability to accept and learn from criticism",
+                      context="furthermore, some accomplishments that I\
+                               have gained is having the and always have\
+                               a positive attitude.")
+
+        assert 'importance' in response, 'PUT response with no label has no importance!'
+        assert 1 == response['number of candidates'], 'PUT response with no label has unexpected number of candidates! ({}).'.format(response['number of candidates'])
+        assert 'prediction' in response, 'PUT response with no label has no prediction!'
 
         self.teardown_oracle(oracle=oracle)
 
     # This section tests GET related functionality
     # Assumes that an instance of Redis is accessible via local host, on the default port
+    #@unittest.skip('Skip ...')
     def test_GET(self, encoding="utf-8"):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -98,7 +111,17 @@ class TestSkillOracle(unittest.TestCase):
         # redis_db.shutdown() # can't really do this since we didn't start it up
         self.teardown_oracle(oracle=oracle)
 
+    @unittest.skip('Skipped: Private function, not part of public API ...')
     def test_fetch_push_more(self):
+        """
+        This test is an alternative example of 'driving' the skill oracle
+        with controlled feedback, wherein new examples are only pushed once
+        per period of time. This is not part of the public API and is given
+        only as a reference for the interesetd user
+
+        (e.g., this was an older version of the API but I thought it would still
+        be helpful to keep)
+        """
         # could be a database connection that yields candidates
         fetcher = [
                     {'name': "ability to accept and learn from criticism",
@@ -117,7 +140,7 @@ class TestSkillOracle(unittest.TestCase):
         redis_db = redis.StrictRedis(self.redis)# defaults to redis:6379
         redis_db.flushall() # clean slate
 
-        oracle.fetch_push_more(fetcher=fetcher)
+        oracle._fetch_push_more(fetcher=fetcher)
 
         size = redis_db.zcard(oracle.SKILL_CANDIDATES)
 
@@ -128,7 +151,17 @@ class TestSkillOracle(unittest.TestCase):
         redis_db.flushall() # clean the slate
         self.teardown_oracle(oracle=oracle)
 
+    @unittest.skip('Skipped: Private function, not part of public API ...')
     def test_push_once(self):
+        """
+        This test is an alternative example of 'driving' the skill oracle
+        with controlled feedback, wherein new examples are only pushed once
+        per period of time. This is not part of the public API and is given
+        only as a reference for the interesetd user
+
+        (e.g., this was an older version of the API but I thought it would still
+        be helpful to keep)
+        """
         # could be a database connection that yields candidates
         fetcher = [
                     {'name': "ability to accept and learn from criticism",

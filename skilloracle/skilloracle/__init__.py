@@ -11,7 +11,7 @@ VW_HOST='127.0.0.1'
 VW_PORT=7000
 VW_CMD="vw"
 #todo: break down into PEP compliant long string
-VW_ARGS ="--save_resume --port {port} --active --predictions /dev/null --daemon --audit -b{bits} --skips 2 --ngram 2 --loss_function logistic".format(port=VW_PORT, bits=25)
+VW_ARGS ="--save_resume --port {port} --active --quiet --daemon -b{bits} --skips 2 --ngram 2 --loss_function logistic".format(port=VW_PORT, bits=25)
 
 class SkillOracle(object):
     def __init__(self,
@@ -20,7 +20,7 @@ class SkillOracle(object):
                  cmd=" ".join([VW_CMD, VW_ARGS])):
         self.SKILL_CANDIDATES = "candidates" # backing for ordered importances
         self.TIMESTAMP = "timestamp" # string of last timestamp value
-        self.REDIS = "redis"
+        self.REDIS = "redis" # Host name Redis container in service docker network
         self.cmd = cmd
         self.host = host
         self.port = port
@@ -79,55 +79,74 @@ class SkillOracle(object):
         return ret == 0
 
     def PUT(self, label, name, context):
+        """
+        Note this function could be made more elegant I suppose,
+        although I have tried to keep it DRY
+        """
         response = None
-
-        # todo: I think this function expects a string array
-        name = escape_vw_string(name)
-        context = escape_vw_string(context)
+        send_to_candidate_store = False
 
         if label:
             label = escape_vw_string(label)
-            labelled_example = "{label} |{context_namespace} {context} \
-                                        |{name_namespace} {name}".\
-                    format(label=label,
-                           context_namespace="context",
-                           context=context,
-                           name_namespace="name",
-                           name=name)
         else:
-            labelled_example = " |{context_namespace} {context} \
-                                |{name_namespace} {name}".\
-                    format(context_namespace="context",
-                           context=context,
-                           name_namespace="name",
-                           name=name)
+            label = "" # no label, expect a prediction, etc, back
+            send_to_candidate_store = True
 
-            self.oracle.sendline(labelled_example)
-            response = self.oracle._recvline()
+        name = escape_vw_string(name) #TODO: replace these w/ regexp replacers?
+        context = escape_vw_string(context)
+
+        labelled_example = "{label} |{context_namespace} {context} \
+                                    |{name_namespace} {name}".\
+                format(label=label,
+                       context_namespace="context",
+                       context=context,
+                       name_namespace="name",
+                       name=name)
+
+        self.oracle.sendline(labelled_example)
+        response = self.oracle._recvline()
 
         if response:
             result = response.split()
             importance = 0
 
             if len(result) == 2:
-                importance = result[1]
+                importance = result[1].decode()
 
             response = {'importance': importance,
-                        'prediction': result[0]}
-            return response
+                        'prediction': result[0].decode()}
+
+        if send_to_candidate_store and response:
+            # first add candidate...
+            importance = float(response['importance'])
+
+            self.redis_db.zadd(self.SKILL_CANDIDATES,
+                               importance,
+                               name)
+
+            # ... then we get the candidate store size
+            # directly from redis to return the user as part
+            # of the API contract
+            pipe = self.redis_db.pipeline()
+            pipe.zcard(self.SKILL_CANDIDATES) # can probably call directly?
+            size = pipe.execute()
+
+            response['number of candidates'] = size[0]
+
+        return response
 
     def GET(self):
         # note: __get_redis() shoudl be cleaned up
         # just return importance, key/skill candidate
-        response = self.__get_redis()
+        response = self._get_redis()
         return response
 
     def __setup_redis(self):
         raise NotImplementedError
 
-    def __get_redis(self):
+    def _get_redis(self):
         """
-        __get_redis is an important utility function that pops off the candidate
+        _get_redis is an important utility function that pops off the candidate
         of highest importance (e.g., in active learning, the example we would most
         like labelled).
 
@@ -186,10 +205,15 @@ class SkillOracle(object):
                 'number of candidates': size}
 
     def fetch_push_more(self, fetcher=None):
+        """
+        WIP: in the process of removing from this service, use PUT instead
+        """
+        raise NotImplementedError
+
         # can subclass to provide your own call/code
         self.__fetch_push_more(fetcher=fetcher)
 
-    def __fetch_push_more(self, fetcher=None):
+    def _fetch_push_more(self, fetcher=None):
         """
         WIP: Need to also push the context so that the users can see on
         GET()
@@ -218,6 +242,9 @@ class SkillOracle(object):
 
     def _push_once(self, size, threshold, fetcher=None, period=60):
         """
+        Note: Typically not used, included as a convienence function
+        to implementers.
+
         Utlity function to push new candidates for GET to return
         where pushing happens once per period seconds (default 1 minute)
 
@@ -245,5 +272,5 @@ class SkillOracle(object):
             if time.time() - timestamp > period:
                 # prevent other calls from entering until period has elapsed
                 self.redis_db.set(self.TIMESTAMP, str(time.time()))
-                self.fetch_push_more(fetcher=fetcher)
+                self._fetch_push_more(fetcher=fetcher)
 

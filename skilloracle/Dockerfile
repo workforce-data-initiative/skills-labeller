@@ -27,7 +27,7 @@ RUN apt-get -y install netcat
 
 # Copy over the rest of the source
 COPY ./skilloracle/bin bin
-COPY ./skilloracle/skilloracle skilloracle
+COPY ./skilloracle/skilloracle skilloracle 
 COPY ./skilloracle/api api
 COPY ./skilloracle/endpoint endpoint
 ADD ./skilloracle/webserver.py webserver.py
