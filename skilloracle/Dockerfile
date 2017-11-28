@@ -1,4 +1,3 @@
-#FROM openjdk:7-jdk
 FROM picoded/ubuntu-openjdk-8-jdk:16.04
 MAINTAINER "Kwame Porter Robinson" kporterrobinson@gmail.com
 
@@ -35,5 +34,4 @@ ADD ./skilloracle/run.sh run.sh
 COPY ./test ../test
 
 RUN chmod a+x run.sh
-ENTRYPOINT ["/bin/bash"]
-#ENTRYPOINT ["./run.sh"]
+ENTRYPOINT ["./run.sh"]
