@@ -1,1 +1,1 @@
-python webserver.py
+python3 webserver.py

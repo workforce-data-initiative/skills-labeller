@@ -4,7 +4,7 @@ container or dev/test mode.
 """
 
 import os
-from werkzeug.serving import run_simple
+from werkzeug import run_simple
 from api import app
 
 # Environment configuration

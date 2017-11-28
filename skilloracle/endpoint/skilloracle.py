@@ -28,7 +28,11 @@ class SkillOracleEndpoint(object):
             name = query['name']
             context = query['context']
 
-            self.oracle.PUT(label, name, context)
+            response = self.oracle.PUT(label=label,
+                                       name=name,
+                                       context=context)
+
+            resp.body = json.dumps(response) # should this versioned?
 
             resp.status = falcon.HTTP_200
 
