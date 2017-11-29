@@ -2,6 +2,8 @@
 version: '3.2'
 services:
   skilloracle:
+    environment:
+        - API_PORT=80
     image: skilloracle:latest
     build:
       context: ./
@@ -9,5 +11,10 @@ services:
     depends_on:
         - redis
     tty: true
+    ports:
+        # see: https://github.com/docker/compose/issues/564
+        # one would like to set the port to API_PORT but that doesn't 
+        # look so easy...
+        - "127.0.0.1:80:80"
   redis:
     image: redis

@@ -9,11 +9,9 @@ try:
 except:
     from ..skilloracle import SkillOracle
 
-
-# This endpoint is WIP
 class SkillOracleEndpoint(object):
     def __init__(self, fetcher=None):
-        self.oracle = SkillOracle(port=7000)
+        self.oracle = SkillOracle(host='127.0.0.1', port=7000)
         self.put_valid_keys = {'label', 'name', 'context'}
         self.fetcher = fetcher
         if not fetcher:
