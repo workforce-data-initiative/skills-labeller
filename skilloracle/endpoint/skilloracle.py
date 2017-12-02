@@ -11,7 +11,8 @@ except:
 
 class SkillOracleEndpoint(object):
     def __init__(self, fetcher=None):
-        self.oracle = SkillOracle(host='127.0.0.1', port=7000)
+        self.host = "skilloracle"
+        self.oracle = SkillOracle(host=self.host, port=7000)
         self.put_valid_keys = {'label', 'name', 'context'}
         self.fetcher = fetcher
         if not fetcher:
@@ -19,12 +20,21 @@ class SkillOracleEndpoint(object):
 
     def on_put(self, req, resp):
         query = falcon.uri.parse_query_string(req.query_string)
+        # ^ just use req.params.items or, below, req.params.keys()
         query_keys = set(query.keys())
 
         if self.put_valid_keys.issuperset(query_keys):
-            label = query['label']
-            name = query['name']
-            context = query['context']
+            print(req.params)
+            label = ''
+            name = ''
+            context = ''
+
+            if 'label' in req.params:
+                label = req.params['label'][0] # [0] if multiple values?
+            if 'name' in req.params:
+                name = req.params['name'][0]
+            if 'context' in req.params:
+                context = req.params['context'][0]
 
             response = self.oracle.PUT(label=label,
                                        name=name,
@@ -40,12 +50,14 @@ class SkillOracleEndpoint(object):
 
         # Note tested to date, need to resolve fetcher/db access
         candidate = response['candidate skill']
-        context = response['']# todo: fix __fetch_push_more to also push the context
-        importance = response[2]
+        importance = response['importance']
+        number = response['number of candidates']
+        context = response['']# todo: Figure out if frontend fetches candidate key to get context, etc
 
         resp.body = json.dumps({'skilloracle' :\
-                                    {'cadidate':candidate,
+                                    {'candidate':candidate,
                                      'context':context,
-                                     'importance':importance} })
+                                     'importance':importance,
+                                     'number of candidates': number} })
 
         resp.status = falcon.HTTP_200

@@ -8,8 +8,8 @@ from werkzeug import run_simple
 from api import app
 
 # Environment configuration
-API_PORT = os.getenv('API_PORT', 4000)
-API_HOST = os.getenv('API_HOSTNAME', '127.0.0.1')
+API_PORT = os.getenv('API_PORT', 8080)
+API_HOST = os.getenv('API_HOSTNAME', 'skilloracle')
 API_DEBUG = os.getenv('API_DEBUG', 0)
 
 if __name__ == '__main__':
