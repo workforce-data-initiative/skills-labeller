@@ -9,7 +9,7 @@ import shlex
 import redis
 
 class TestSkillOracle(unittest.TestCase):
-    """ Unit test for job preprocessor """
+    """ Unit test for Skill Oracle """
 
     def setUp(self, port=7000, host='127.0.0.1'):
         self.port = port
