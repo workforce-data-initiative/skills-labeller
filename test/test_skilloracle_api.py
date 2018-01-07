@@ -29,15 +29,25 @@ class DockerCompose(object):
         return ret
 
     def run(self, path="../", yml="docker-compose.yml", service="skilloracle", cmd=None):
+        yml_path = ""
+
+        if not service:
+            service = ""
+
+        if not cmd:
+            cmd = ""
+
         if yml:
             yml_path = os.path.join(os.path.dirname(__file__),
                                     path,
                                     yml)
             yml_path = "-f " + yml_path
+        else:
+            yml = ""
+
         # see: https://stackoverflow.com/a/34459371/3662899,
         # want to deattach from the Python process to reflect how a standalone API
-        # would really behave
-
+        # would really behave under docker calls, containers
         shell_command = " ".join([self.program, yml_path, cmd, service])
         ret = subprocess.Popen(shell_command,
                                shell=True,
@@ -66,6 +76,7 @@ class TestSkillOracleAPI(unittest.TestCase):
 
     def setUp(self):
         self.dockercompose = DockerCompose()
+        self.port = "8080" # todo: extract from docker-compose.yml instead
 
     def test_check_version(self):
         """
@@ -82,8 +93,53 @@ class TestSkillOracleAPI(unittest.TestCase):
             "Minor Docker-compose version is too low ({})".format(split_version[1])
 
     def test_up(self):
+        """
+
+        """
         assert self.dockercompose.run(cmd='up'), "Was not able to run docker-compose up"
+
+        time.sleep(5) # wait for containers to stand up
 
         service_ip = self.dockercompose.extract_service_ip()
 
         assert len(service_ip.split('.')) == 4, "Service ip is malformed!"
+
+    def test_put_api(self):
+        assert self.dockercompose.run(cmd='up'), "Was not able to run docker-compose up"
+        time.sleep(5) # wait for containers to stand up
+        service_ip = self.dockercompose.extract_service_ip()
+        assert len(service_ip.split('.')) == 4, "Service ip is malformed!"
+
+        # test PUT with known label
+        data = {'context': 'I like for pleasure!', 'label': '-1', 'name': 'reading books'}
+        response = requests.put("http://"+service_ip+":"+self.port, params=data)
+        assert response.status_code == 200,\
+                "API response was non-200 ({}) for labelled PUT call".format(response.status_code)
+
+        # test PUT with no label (adding to candidate queue)
+        data = {'context': 'I like for pleasure!', 'label': None, 'name': 'reading books'}
+        response = requests.put("http://"+service_ip+":"+self.port, params=data)
+        assert response.status_code == 200,\
+                "API response was non-200 ({}) for no label PUT call".format(response.status_code)
+
+        keys = json.loads(response.text).keys()
+
+        assert "prediction" in keys and\
+               "importance" in keys, "API response did not have prediction, importance keys!"
+        # actual values don't really matter, typically are 0, 0
+
+    def test_down(self):
+        """
+        This test is being used also for tearing down, turning off the service
+        """
+
+        # Note: this seems to take an oddly long time to complete
+        # I wonder if the pytest exiting kills the docker-compose down command, although
+        # I thought it was spawned as a seperate process..
+        #
+        # Note:
+        # This causes some side effects since it takes so long to complete int hat multiple runs of this
+        # unit test can interact w another, causing a test expecting a service to be up to
+        # have no service up when a docker-compose up instantly passes and the docker-compose down
+        # finally kicks in from an older test. Beware!
+        assert self.dockercompose.run(cmd='down', service=None, yml=None), "Was not able to run docker-compose down"
