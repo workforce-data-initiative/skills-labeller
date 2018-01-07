@@ -128,11 +128,24 @@ class TestSkillOracleAPI(unittest.TestCase):
                "importance" in keys, "API response did not have prediction, importance keys!"
         # actual values don't really matter, typically are 0, 0
 
-    def test_down(self):
-        """
-        This test is being used also for tearing down, turning off the service
-        """
+    def test_get_api(self):
+        assert self.dockercompose.run(cmd='up'), "Was not able to run docker-compose up"
+        time.sleep(5) # wait for containers to stand up
+        service_ip = self.dockercompose.extract_service_ip()
+        assert len(service_ip.split('.')) == 4, "Service ip is malformed!"
 
+        # PUT one candidate skill
+        data = {'context': 'I like for pleasure!', 'label': None, 'name': 'reading books'}
+        response = requests.put("http://"+service_ip+":"+self.port, params=data)
+        assert response.status_code == 200,\
+                "API response was non-200 ({}) for labelled PUT call".format(response.status_code)
+
+        # GET a candidate skill
+        response = requests.get("http://"+service_ip+":"+self.port)
+        assert response.status_code == 200,\
+                "API response was non-200 ({}) for GET call".format(response.status_code)
+
+    def teardown(self):
         # Note: this seems to take an oddly long time to complete
         # I wonder if the pytest exiting kills the docker-compose down command, although
         # I thought it was spawned as a seperate process..

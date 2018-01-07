@@ -46,13 +46,12 @@ class SkillOracleEndpoint(object):
 
     def on_get(self, req, resp):
         response = self.oracle.GET()
-        self.oracle.fetch_push_more(fetcher=self.fetcher)
 
         # Note tested to date, need to resolve fetcher/db access
         candidate = response['candidate skill']
         importance = response['importance']
         number = response['number of candidates']
-        context = response['']# todo: Figure out if frontend fetches candidate key to get context, etc
+        context = " " # TODO: put context in json obj on_Put, extract on_get
 
         resp.body = json.dumps({'skilloracle' :\
                                     {'candidate':candidate,
