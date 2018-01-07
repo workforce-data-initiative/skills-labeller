@@ -5,6 +5,7 @@ import requests
 import json
 import os
 import subprocess
+import shlex
 
 class DockerCompose(object):
     """
@@ -44,6 +45,22 @@ class DockerCompose(object):
 
         return ret._child_created
 
+    def extract_service_ip(self, service="skilloracle"):
+        ret = None
+        shell_command = "docker inspect -f '{{.Name}}"           +\
+                        "- {{range .NetworkSettings.Networks}}"  +\
+                        " {{.IPAddress}}{{end}}' $(docker ps -q)"
+
+        ips = subprocess.check_output(shell_command, shell=True)
+
+        for line in ips.decode('utf-8')[:-1].split('\n'):
+            service_line = line.split('-')
+            if service in service_line[0]:
+                ret = service_line[1].strip()
+                break
+
+        return ret
+
 class TestSkillOracleAPI(unittest.TestCase):
     """ Unit test for Skill Oracle API """
 
@@ -66,3 +83,7 @@ class TestSkillOracleAPI(unittest.TestCase):
 
     def test_up(self):
         assert self.dockercompose.run(cmd='up'), "Was not able to run docker-compose up"
+
+        service_ip = self.dockercompose.extract_service_ip()
+
+        assert len(service_ip.split('.')) == 4, "Service ip is malformed!"
