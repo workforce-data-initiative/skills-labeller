@@ -122,7 +122,7 @@ class SkillOracle(object):
 
             self.redis_db.zadd(self.SKILL_CANDIDATES,
                                importance,
-                               name)
+                               name)# TODO: replace name with json obj container name, context
 
             # ... then we get the candidate store size
             # directly from redis to return the user as part
