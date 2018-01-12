@@ -22,7 +22,7 @@ class SkillOracle(object):
         self.TIMESTAMP = "timestamp" # string of last timestamp value
         self.REDIS = "redis" # Host name Redis container in service docker network
         self.cmd = cmd
-        self.host = host
+        self.host = host # should we have a default host or force user to provide one?
         self.port = port
         self.oracle = None
 
@@ -122,7 +122,7 @@ class SkillOracle(object):
 
             self.redis_db.zadd(self.SKILL_CANDIDATES,
                                importance,
-                               name)
+                               name)# TODO: replace name with json obj container name, context
 
             # ... then we get the candidate store size
             # directly from redis to return the user as part

@@ -1,1 +1,2 @@
-python webserver.py
+#!/bin/bash
+python3 webserver.py
