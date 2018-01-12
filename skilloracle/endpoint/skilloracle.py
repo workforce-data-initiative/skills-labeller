@@ -29,20 +29,22 @@ class SkillOracleEndpoint(object):
             name = ''
             context = ''
 
-            if 'label' in req.params:
-                label = req.params['label'][0] # [0] if multiple values?
-            if 'name' in req.params:
-                name = req.params['name'][0]
-            if 'context' in req.params:
-                context = req.params['context'][0]
+            if all([1 == len(req.params[param])\
+                    for param in ['label','name','context']):
+                if 'label' in req.params:
+                    label = req.params['label'][0]
+                if 'name' in req.params:
+                    name = req.params['name'][0]
+                if 'context' in req.params:
+                    context = req.params['context'][0]
 
-            response = self.oracle.PUT(label=label,
-                                       name=name,
-                                       context=context)
+                response = self.oracle.PUT(label=label,
+                                           name=name,
+                                           context=context)
 
-            resp.body = json.dumps(response) # should this versioned?
+                resp.body = json.dumps(response) # should this versioned?
 
-            resp.status = falcon.HTTP_200
+                resp.status = falcon.HTTP_200
 
     def on_get(self, req, resp):
         response = self.oracle.GET()
