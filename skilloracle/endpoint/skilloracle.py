@@ -13,7 +13,7 @@ class SkillOracleEndpoint(object):
     def __init__(self, fetcher=None):
         self.host = "skilloracle"
         self.oracle = SkillOracle(host=self.host, port=7000)
-        self.put_valid_keys = {'label', 'name', 'context'}
+        self.put_valid_keys = { 'name', 'context', 'label'}
         self.fetcher = fetcher
         if not fetcher:
             fetcher = None # what kind of default woudl we do here?
@@ -23,42 +23,38 @@ class SkillOracleEndpoint(object):
         # ^ just use req.params.items or, below, req.params.keys()
         query_keys = set(query.keys())
 
-        if self.put_valid_keys.issuperset(query_keys):
-            print(req.params)
-            label = ''
-            name = ''
-            context = ''
+        #if self.put_valid_keys.issuperset(query_keys):
+        if query_keys.issubset(self.put_valid_keys):
+            label = query['label']\
+                    if 'label' in query else None
+            name = query['name']\
+                    if 'name' in query else None
+            context = query['context']\
+                    if 'context' in query else None
 
-            if all([1 == len(req.params[param])\
-                    for param in ['label','name','context']):
-                if 'label' in req.params:
-                    label = req.params['label'][0]
-                if 'name' in req.params:
-                    name = req.params['name'][0]
-                if 'context' in req.params:
-                    context = req.params['context'][0]
+            response = self.oracle.PUT(label=label,
+                                       name=name,
+                                       context=context)
 
-                response = self.oracle.PUT(label=label,
-                                           name=name,
-                                           context=context)
+            resp.body = json.dumps(response) # should this versioned?
 
-                resp.body = json.dumps(response) # should this versioned?
-
-                resp.status = falcon.HTTP_200
+            resp.status = falcon.HTTP_200
 
     def on_get(self, req, resp):
         response = self.oracle.GET()
+        response["response"] = json.loads(response["response"])
+
+        print(response)
 
         # Note tested to date, need to resolve fetcher/db access
-        candidate = response['candidate skill']
+        name = response['response']['name']
+        context = response['response']['context']
         importance = response['importance']
         number = response['number of candidates']
-        context = " " # TODO: put context in json obj on_Put, extract on_get
 
-        resp.body = json.dumps({'skilloracle' :\
-                                    {'candidate':candidate,
-                                     'context':context,
-                                     'importance':importance,
-                                     'number of candidates': number} })
+        resp.body = json.dumps({'name':name,
+                                'context':context,
+                                'importance':importance,
+                                'number of candidates': number})
 
         resp.status = falcon.HTTP_200
