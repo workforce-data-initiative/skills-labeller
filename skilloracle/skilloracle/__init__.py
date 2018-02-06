@@ -87,7 +87,7 @@ class SkillOracle(object):
         send_to_candidate_store = False
 
         if label:
-            label = escape_vw_string(label)
+            label = escape_vw_string(label) # todo: replace with custom function
         else:
             label = "" # no label, expect a prediction, etc, back
             send_to_candidate_store = True
