@@ -1,6 +1,17 @@
-# This file is a WIP
 version: '3.2'
 services:
+  etl:
+    image: etl
+    build:
+      context: ./
+      dockerfile: ./etl/Dockerfile
+    environment:
+      # note: a project wide env-file directive would be cleaner
+      - MONGO_HOST=mongo
+      - RUN_UNITTESTS_ONLY=true
+    depends_on:
+      - mongo
+
   skilloracle:
     image: skilloracle:latest
     environment:
@@ -20,3 +31,10 @@ services:
 
   redis:
     image: redis
+
+  mongo:
+    image: mongo
+    ports:
+      - '27017:27017'
+    volumes:
+        - /opt/mongo_data:/data/db
