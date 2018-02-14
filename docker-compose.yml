@@ -12,6 +12,26 @@ services:
     depends_on:
       - mongo
 
+  skilloracle:
+    image: skilloracle:latest
+    environment:
+        - API_PORT=8080
+        - API_DEBUG=1
+    build:
+      context: ./
+      dockerfile: ./skilloracle/Dockerfile
+    depends_on:
+        - redis
+    ports:
+        # see: https://github.com/docker/compose/issues/564
+        # one would like to set the port to API_PORT but that doesn't 
+        # look so easy...
+        - "8080:8080"
+    tty: true
+
+  redis:
+    image: redis
+
   mongo:
     image: mongo
     ports:
