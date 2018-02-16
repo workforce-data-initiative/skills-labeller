@@ -5,6 +5,7 @@ import shlex
 from wabbit_wappa.active_learner import DaemonVWProcess
 from wabbit_wappa import escape_vw_string
 import redis
+import re
 
 
 VW_HOST='127.0.0.1'
@@ -25,6 +26,9 @@ class SkillOracle(object):
         self.host = host # should we have a default host or force user to provide one?
         self.port = port
         self.oracle = None
+        self.escape_dict = {':': r'\;',
+                            '|': r'\\'
+                            }
 
         command = None
         if not self.check_socket(host=self.host, port=self.port):
@@ -35,6 +39,17 @@ class SkillOracle(object):
                                       ip=self.host)
 
         self.redis_db = redis.StrictRedis(host=self.REDIS)# defaults to redis:6379
+
+    def escape_vw_character(special_character_re_match):
+      special_character = special_character_re_match.group()
+      return self.escape_dict[special_character]
+
+    def escape_vw_string(s):
+      """
+      Taken from wabbit wappa, does not replace spaces
+      """
+      escaped_s = validation_regex.sub(escape_vw_character, s)
+      return escaped_s
 
     def sendrecv(self, host, port, content):
         """
@@ -87,13 +102,13 @@ class SkillOracle(object):
         send_to_candidate_store = False
 
         if label:
-            label = escape_vw_string(label) # todo: replace with custom function
+            label = self.escape_vw_string(label) # todo: replace with custom function
         else:
             label = "" # no label, expect a prediction, etc, back
             send_to_candidate_store = True
 
-        name = escape_vw_string(name) #TODO: replace these w/ regexp replacers?
-        context = escape_vw_string(context)
+        name = self.escape_vw_string(name)
+        context = self.escape_vw_string(context)
 
         labelled_example = "{label} |{context_namespace} {context} \
                                     |{name_namespace} {name}".\

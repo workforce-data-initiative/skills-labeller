@@ -43,7 +43,7 @@ class TestSkillOracle(unittest.TestCase):
         ret = oracle.kill()
         return ret
 
-    #@unittest.skip('Skip create, destroy...')
+    @unittest.skip('Skip create, destroy...')
     def test_create_and_destroy_oracle(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -56,7 +56,22 @@ class TestSkillOracle(unittest.TestCase):
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
-    #@unittest.skip('Skip PUT...')
+    def test_str_escape(self):
+        """
+        """
+        oracle = self.standup_new_oracle(port=self.port)
+        assert None != oracle, "Failed to create oracle."
+
+        # Verify string escaping for a skill candidate, context that
+        # contains Vowpal Wabbit regarded special characters
+
+
+        # Cool, we stood up the oracle, now we kill it
+        ret = self.teardown_oracle(oracle=oracle)
+        assert True == ret, "Failed to kill skill oracle!"
+
+
+    @unittest.skip('Skip PUT...')
     def test_PUT(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -83,7 +98,7 @@ class TestSkillOracle(unittest.TestCase):
 
     # This section tests GET related functionality
     # Assumes that an instance of Redis is accessible via local host, on the default port
-    #@unittest.skip('Skip ...')
+    @unittest.skip('Skip ...')
     def test_GET(self, encoding="utf-8"):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."

@@ -30,7 +30,7 @@ class SkillOracleEndpoint(object):
             context = ''
 
             if all([1 == len(req.params[param])\
-                    for param in ['label','name','context']):
+                    for param in ['label','name','context']]):
                 if 'label' in req.params:
                     label = req.params['label'][0]
                 if 'name' in req.params:
