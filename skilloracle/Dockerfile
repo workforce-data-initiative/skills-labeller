@@ -36,5 +36,5 @@ COPY test test
 #ADD ./skilloracle/run.sh run.sh
 #COPY ./test ./test
 
-RUN chmod a+x run.sh
-ENTRYPOINT ["./run.sh"]
+RUN chmod a+x /skills-labeller/skilloracle/run.sh
+ENTRYPOINT ["/skills-labeller/skilloracle/run.sh"]
