@@ -25,16 +25,8 @@ RUN apt-get -y install psmisc
 RUN apt-get -y install netcat
 
 # Copy over the rest of the source
-
 COPY skilloracle skilloracle
 COPY test test
-#COPY ./skilloracle/bin bin
-#COPY ./skilloracle/skilloracle skilloracle 
-#COPY ./skilloracle/api api
-#COPY ./skilloracle/endpoint endpoint
-#ADD ./skilloracle/webserver.py webserver.py
-#ADD ./skilloracle/run.sh run.sh
-#COPY ./test ./test
 
 RUN chmod a+x /skills-labeller/skilloracle/run.sh
 ENTRYPOINT ["/skills-labeller/skilloracle/run.sh"]
