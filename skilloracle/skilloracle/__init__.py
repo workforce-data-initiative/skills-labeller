@@ -2,6 +2,7 @@ import time
 import datetime
 import subprocess
 import shlex
+import json
 from wabbit_wappa.active_learner import DaemonVWProcess
 from wabbit_wappa import escape_vw_string
 import redis
@@ -27,8 +28,10 @@ class SkillOracle(object):
         self.port = port
         self.oracle = None
         self.escape_dict = {':': r'\;',
-                            '|': r'\\'
-                            }
+                            '|': r'\\',
+                            ' ': r' '
+                            }# note: space has no change
+        self.validation_regex = re.compile(r' |:|\|')
 
         command = None
         if not self.check_socket(host=self.host, port=self.port):
@@ -40,15 +43,15 @@ class SkillOracle(object):
 
         self.redis_db = redis.StrictRedis(host=self.REDIS)# defaults to redis:6379
 
-    def escape_vw_character(special_character_re_match):
+    def escape_vw_character(self, special_character_re_match):
       special_character = special_character_re_match.group()
       return self.escape_dict[special_character]
 
-    def escape_vw_string(s):
+    def escape_vw_string(self, s):
       """
       Taken from wabbit wappa, does not replace spaces
       """
-      escaped_s = validation_regex.sub(escape_vw_character, s)
+      escaped_s = self.validation_regex.sub(self.escape_vw_character, s)
       return escaped_s
 
     def sendrecv(self, host, port, content):
@@ -102,12 +105,12 @@ class SkillOracle(object):
         send_to_candidate_store = False
 
         if label:
-            label = self.escape_vw_string(label) # todo: replace with custom function
+            label = self.escape_vw_string(label) # can protect with contraint on API
         else:
             label = "" # no label, expect a prediction, etc, back
             send_to_candidate_store = True
 
-        name = self.escape_vw_string(name)
+        name = self.escape_vw_string(name) # can protect w contrain on API
         context = self.escape_vw_string(context)
 
         labelled_example = "{label} |{context_namespace} {context} \
@@ -137,7 +140,8 @@ class SkillOracle(object):
 
             self.redis_db.zadd(self.SKILL_CANDIDATES,
                                importance,
-                               name)# TODO: replace name with json obj container name, context
+                               json.dumps({"name":name,
+                                           "context":context}))# TODO: replace name with json obj container name, context
 
             # ... then we get the candidate store size
             # directly from redis to return the user as part
@@ -215,7 +219,7 @@ class SkillOracle(object):
         candidate_response, _, size = pipe.execute()
         candidate_response = candidate_response[0] # flatten the redis zrange() response
 
-        return {'candidate skill': candidate_response[0].decode(),
+        return {'response': candidate_response[0].decode(),
                 'importance': candidate_response[1],
                 'number of candidates': size}
 

@@ -10,28 +10,31 @@ RUN apt-get update &&\
 
 RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Python 3 seemingly not available in openjdk:7-jdk
+# Python 3 seemingly not available in openjdk:8-jdk
 RUN apt-get update && apt-get -y upgrade &&\
     apt-get -y install python3 python3-pip libssl-dev libffi-dev python3-dev
 # note: https://github.com/Homebrew/legacy-homebrew/issues/25752, overwrites pip w/ pip3
 # Use pip going forward until this hack is resolved
 RUN pip3 install --upgrade pip setuptools
 
-WORKDIR ./skilloracle
+WORKDIR '/skills-labeller'
 # Install a variety of dependencies
-ADD ./skilloracle/requirements.txt requirements.txt
+ADD skilloracle/requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 RUN apt-get -y install psmisc 
 RUN apt-get -y install netcat
 
 # Copy over the rest of the source
-COPY ./skilloracle/bin bin
-COPY ./skilloracle/skilloracle skilloracle 
-COPY ./skilloracle/api api
-COPY ./skilloracle/endpoint endpoint
-ADD ./skilloracle/webserver.py webserver.py
-ADD ./skilloracle/run.sh run.sh
-COPY ./test ../test
+
+COPY skilloracle skilloracle
+COPY test test
+#COPY ./skilloracle/bin bin
+#COPY ./skilloracle/skilloracle skilloracle 
+#COPY ./skilloracle/api api
+#COPY ./skilloracle/endpoint endpoint
+#ADD ./skilloracle/webserver.py webserver.py
+#ADD ./skilloracle/run.sh run.sh
+#COPY ./test ./test
 
 RUN chmod a+x run.sh
 ENTRYPOINT ["./run.sh"]

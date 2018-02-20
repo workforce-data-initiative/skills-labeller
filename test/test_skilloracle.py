@@ -43,7 +43,6 @@ class TestSkillOracle(unittest.TestCase):
         ret = oracle.kill()
         return ret
 
-    @unittest.skip('Skip create, destroy...')
     def test_create_and_destroy_oracle(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -56,8 +55,10 @@ class TestSkillOracle(unittest.TestCase):
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
+    @unittest.skip('Skip string escaping...')
     def test_str_escape(self):
         """
+        TODO: Implemetn this, shoudl test escape_vw_character
         """
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -70,8 +71,6 @@ class TestSkillOracle(unittest.TestCase):
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
-
-    @unittest.skip('Skip PUT...')
     def test_PUT(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -103,8 +102,6 @@ class TestSkillOracle(unittest.TestCase):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
 
-        # note: we use a string as a key but in production keys are likely to be
-        # skill ids, that are given to the UI for fetching (?)
         encoding=encoding
         key = "ability to accept and learn from criticism" # todo: encode w encoding?
         importance = 1.23
