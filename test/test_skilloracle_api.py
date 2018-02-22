@@ -122,10 +122,11 @@ class TestSkillOracleAPI(unittest.TestCase):
         assert response.status_code == 200,\
                 "API response was non-200 ({}) for no label PUT call".format(response.status_code)
 
-        keys = json.loads(response.text).keys()
+        print(response.text)
+        response = json.loads(response.text)
 
-        assert "prediction" in keys and\
-               "importance" in keys, "API response did not have prediction, importance keys!"
+        assert "prediction" in response and\
+               "importance" in response, "API response did not have prediction, importance keys!"
         # actual values don't really matter, typically are 0, 0
 
     def test_get_api(self):
@@ -155,4 +156,6 @@ class TestSkillOracleAPI(unittest.TestCase):
         # unit test can interact w another, causing a test expecting a service to be up to
         # have no service up when a docker-compose up instantly passes and the docker-compose down
         # finally kicks in from an older test. Beware!
+
+        # Note2: A more mature psutils, spawn/recursive terminate approach would probably be better here
         assert self.dockercompose.run(cmd='down', service=None, yml=None), "Was not able to run docker-compose down"
