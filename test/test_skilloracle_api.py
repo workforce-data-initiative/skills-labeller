@@ -146,6 +146,15 @@ class TestSkillOracleAPI(unittest.TestCase):
         assert response.status_code == 200,\
                 "API response was non-200 ({}) for GET call".format(response.status_code)
 
+        print(response)
+        skill_candidate = json.loads(response.text)
+        print(skill_candidate)
+        assert skill_candidate['number of candidates'] == 0, "Unexpected number of skill candidates (expected 0)!"
+        assert skill_candidate['name'] == data['name'],\
+                "PUT'ed name does not match!"
+        assert skill_candidate['context'] == data['context'],\
+                "PUT'ed context does not match!"
+
     def teardown(self):
         # Note: this seems to take an oddly long time to complete
         # I wonder if the pytest exiting kills the docker-compose down command, although

@@ -25,13 +25,11 @@ class SkillOracleEndpoint(object):
 
         #if self.put_valid_keys.issuperset(query_keys):
         if query_keys.issubset(self.put_valid_keys):
-            print(req.params)
-
-            label = query['label'][0]\
+            label = query['label']\
                     if 'label' in query else None
-            name = query['name'][0]\
+            name = query['name']\
                     if 'name' in query else None
-            context = query['context'][0]\
+            context = query['context']\
                     if 'context' in query else None
 
             response = self.oracle.PUT(label=label,
@@ -44,17 +42,19 @@ class SkillOracleEndpoint(object):
 
     def on_get(self, req, resp):
         response = self.oracle.GET()
+        response["response"] = json.loads(response["response"])
+
+        print(response)
 
         # Note tested to date, need to resolve fetcher/db access
-        candidate = response['candidate skill']
+        name = response['response']['name']
+        context = response['response']['context']
         importance = response['importance']
         number = response['number of candidates']
-        context = " " # TODO: put context in json obj on_Put, extract on_get
 
-        resp.body = json.dumps({'skilloracle' :\
-                                    {'candidate':candidate,
-                                     'context':context,
-                                     'importance':importance,
-                                     'number of candidates': number} })
+        resp.body = json.dumps({'name':name,
+                                'context':context,
+                                'importance':importance,
+                                'number of candidates': number})
 
         resp.status = falcon.HTTP_200
