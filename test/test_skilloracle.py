@@ -43,7 +43,6 @@ class TestSkillOracle(unittest.TestCase):
         ret = oracle.kill()
         return ret
 
-    #@unittest.skip('Skip create, destroy...')
     def test_create_and_destroy_oracle(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -56,7 +55,22 @@ class TestSkillOracle(unittest.TestCase):
         ret = self.teardown_oracle(oracle=oracle)
         assert True == ret, "Failed to kill skill oracle!"
 
-    #@unittest.skip('Skip PUT...')
+    @unittest.skip('Skip string escaping...')
+    def test_str_escape(self):
+        """
+        TODO: Implement this, shoudl test escape_vw_character
+        """
+        oracle = self.standup_new_oracle(port=self.port)
+        assert None != oracle, "Failed to create oracle."
+
+        # Verify string escaping for a skill candidate, context that
+        # contains Vowpal Wabbit regarded special characters
+
+
+        # Cool, we stood up the oracle, now we kill it
+        ret = self.teardown_oracle(oracle=oracle)
+        assert True == ret, "Failed to kill skill oracle!"
+
     def test_PUT(self):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
@@ -83,27 +97,33 @@ class TestSkillOracle(unittest.TestCase):
 
     # This section tests GET related functionality
     # Assumes that an instance of Redis is accessible via local host, on the default port
-    #@unittest.skip('Skip ...')
     def test_GET(self, encoding="utf-8"):
         oracle = self.standup_new_oracle(port=self.port)
         assert None != oracle, "Failed to create oracle."
 
-        # note: we use a string as a key but in production keys are likely to be
-        # skill ids, that are given to the UI for fetching (?)
         encoding=encoding
-        key = "ability to accept and learn from criticism" # todo: encode w encoding?
+        # note: token, skill, candidate skill etc. might be a better name than `name`!
+        name = "ability to accept and learn from criticism" # todo: encode w encoding?
+        context = "The candidate must have the to better navigate corporate culture."
+        item = json.dumps({"name": name,
+                           "context": context})
         importance = 1.23
 
         # Set up redis with one candidate, flush all others
         redis_db = redis.StrictRedis(self.redis)# defaults to redis:6379
         redis_db.flushall() # clean slate
+
+        # add known skill, context
         redis_db.zadd(oracle.SKILL_CANDIDATES,
                       importance,
-                      key)
+                      item)
 
         response = oracle.GET()
 
-        assert key == response['candidate skill'], 'Oracle GET did not return added key'
+        print(response.keys(), "FAIL, get keys")
+        print(response['response'])
+
+        assert name == json.loads(response['response'])['name'], 'Oracle GET did not return added name'
         assert importance == response['importance'], 'Oracle GET did not return added score/importance'
         assert 0 == response['number of candidates'], 'Oracle GET did not return expected number items (0)'
 
