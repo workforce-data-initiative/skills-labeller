@@ -150,6 +150,8 @@ class CCARSJobsPostings(object):
 
 class SkillCandidates(object):
     name = "skill_candidates"
+    #ccarsjobsposting_rpc = RpcProxy("ccarsjobsposting_service") # note: use fast RPC service
+    #dispatcher_rpc = RpcProxy("dispatcher") # note: use fast RPC service
 
     def __init__(self, preprocessor=['default'], n_keyterms=0.05):
         self.preprocessor = preprocessor

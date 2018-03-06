@@ -8,7 +8,7 @@ services:
     environment:
       # note: a project wide env-file directive would be cleaner
       - MONGO_HOST=mongo
-      - RUN_UNITTESTS_ONLY=true
+      - RUN_UNITTESTS_ONLY=false
     depends_on:
       - mongo
 
@@ -38,4 +38,5 @@ services:
     ports:
       - '27017:27017'
     volumes:
+      # this doesn't seem to work, todo: fix
       - /opt/mongo_data:/data/db
