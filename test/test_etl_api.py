@@ -1,19 +1,17 @@
-""" Unit test for candidate skill api"""
+""" Unit test for etl API"""
+import time
 import unittest
 import requests
 import json
 import os
 import subprocess
-import time
-import pymongo
-from skills_utils.iteration import Batch
-from etl.utils.mongo import MongoDatabase
+import shlex
 try:
     from nameko.standalone.rpc import ClusterRpcProxy
 except ImportError:
     raise ImportError("This unittest requires Nameko to be installed. You can install it with `pip install nameko`")
 
-# Note: we should really make this part of a utils file in tests :-/
+# note: we should really make this part of a utils file in tests :-/
 class DockerCompose(object):
     """
     Helper class for interacting with DockerCompose via subprocess
@@ -78,17 +76,11 @@ class DockerCompose(object):
 
         return ret
 
-class TestCandidateSkillSelector(unittest.TestCase):
-    """ Unit test for candidate skill api"""
+class TestETLAPI(unittest.TestCase):
+    """ Unit test for ETL API """
 
     @classmethod
-    def setUpClass(cls,
-                   v3_api_filename="v3_ccars.json",
-                   test_dir="test"):
-        """
-        Prepopulate job_postings in advance of this test, using
-        stock test data from CCARS VT
-        """
+    def setUpClass(cls):
         cls.dockercompose = DockerCompose()
         assert cls.dockercompose.run(cmd='up', service='etl'), "Was not able to run docker-compose up"
         # this should more intelligent, like query service ips, return when a
@@ -99,41 +91,53 @@ class TestCandidateSkillSelector(unittest.TestCase):
         # should probably pull this name out of a config file as well .. :-/
         cls.rabbit_ip = cls.dockercompose.extract_service_ip('rabbit')
         assert len(cls.rabbit_ip.split('.')) == 4, "Rabbit MQ service ip is malformed/None!"
-        #service_ip = cls.dockercompose.extract_service_ip('skill_candidates')
-        #assert len(service_ip.split('.')) == 4, "Skill Candidates service ip is malformed!"
+
+        service_ip = cls.dockercompose.extract_service_ip('etl') # is this needed?
+        assert len(service_ip.split('.')) == 4, "ETL service ip is malformed!"
 
         # assumes the rabbit mq config hasn't changed, should be read in from a config file :-/
         cls.config = {
             'AMQP_URI': 'amqp://guest:guest@{service_ip}:5672'.format(service_ip=cls.rabbit_ip)
         }
 
-        cls.batch_size = 100
-        cls.mongo = MongoDatabase()
-        cls.v3_api_filename = os.path.join(test_dir, v3_api_filename)
+    def test_check_version(self):
+        """
+        This is a very basic version check and isn't robust against
+        letters and other ways of indicating versions. There are python
+        libraries offering better version testing to consider using.
 
-        with open(cls.v3_api_filename, 'r') as fp:
-            for batch in Batch(fp, cls.batch_size):
-                requests = []
-                for job_json in batch:
-                    parsed = json.loads(job_json)
-                    parsed['_id'] = parsed['id']
-                    requests.append(pymongo.UpdateOne(
-                        {'_id': parsed['_id']},
-                        {'$set': parsed},
-                        upsert=True
-                    ))
-                resp = cls.mongo.db.job_postings.bulk_write(requests, ordered=False)
-        count = cls.mongo.db.command({'collstats':'job_postings'})["count"]
-        assert count > 0, "Did not prepopulate database with job_postings!"
+        note; this may be redundant with the setUpClass use of of docker
+        """
+        ret = self.dockercompose.get_version()
+        split_version = ret.split('.')
+        assert int(split_version[0]) >= 1,\
+            "Major Docker-compose version is too low ({})".format(split_version[0])
 
-    def test_generate_candidates(self):
+        assert int(split_version[1]) >= 10,\
+            "Minor Docker-compose version is too low ({})".format(split_version[1])
+
+    def test_check_mongo_api(self):
         with ClusterRpcProxy(self.config) as cluster_rpc:
-            cluster_rpc.skill_candidates.generate_candidates()
+            self.assertTrue(cluster_rpc.ccarsjobsposting_service.check_mongo(),\
+                    "RPC etl.vt.check_mongo failed!")
 
-        count = self.mongo.db.command({'collstats':'candidate_skills'})["count"]
-        self.assertGreater(count, 0, "Skill Candidates database has no candidates!")
+    def test_add_all(self):
+        with ClusterRpcProxy(self.config) as cluster_rpc:
+            # test add_all call, note max samples of 1 with 1 link, should be quick
+            # edit: quick = 22 minutes!
+            ret = cluster_rpc.\
+                    ccarsjobsposting_service.add_all(maximum_links=1,
+                                                     total_samples=1)
+            self.assertGreater(ret['nLinks'], 0, "RPC etl.vt.add_all did not write at least 1 link!")
+
+            # test get_stats, should have stuff in job_postings
+            ret = json.loads(cluster_rpc.ccarsjobsposting_service.get_stats())
+            self.assertIsNotNone(ret, "RPC etl.vt.get_stats failed!")
+            self.assertGreater(ret['count'], 0,\
+                    "etl.vt.get_stats indicates that database has more than 0 postings!"\
+                    "Need to start with fresh, wiped, database!")
 
     @classmethod
     def tearDownClass(cls):
-        cls.mongo.db.job_postings.drop()
-        cls.mongo.db.skill_candidates.drop()
+        # it takes about 15 seconds for the containers to shut down
+        assert cls.dockercompose.run(cmd='down', service=None, yml=None), "Was not able to run docker-compose down"

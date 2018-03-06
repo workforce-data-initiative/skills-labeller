@@ -14,6 +14,8 @@ class InstantiateDatabase(object):
     candidate skills may be extracted from it, is quite
     duplicative of the test_etl.py but kept seperate for
     independence purposes.
+
+    todo: put this in a test utils file, copy_v3... is also duplicated in test_etl.py
     """
     def __init__(self,
                  num_test_items=3,
@@ -34,14 +36,14 @@ class InstantiateDatabase(object):
         self.undo_mock_write_url()
         self.patcher.stop()
 
-    def copy_v3_test_file(self, link, file_path):
+    def copy_v3_test_file(self, link=None, full_path=None):
         """
         Simulates the result of successfully downloading V3
         CCARS Job posting data and writing it to disk
         """
         link = self.v3_api_filename
-        shutil.copyfile(link, file_path)
-        self.v3_dst_file_path = file_path # for removal
+        shutil.copyfile(link, full_path)
+        self.v3_dst_file_path = full_path # for removal
 
     def undo_mock_write_url(self):
         """
