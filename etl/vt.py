@@ -6,8 +6,9 @@ import json
 import urllib.request
 import urllib.parse
 from collections import Counter
-from etl.utils.mongo import MongoDatabase
 import pymongo
+from nameko.rpc import rpc
+from etl.utils.mongo import MongoDatabase
 from skills_utils.iteration import Batch
 from etl.preprocessor import SingleRankWithContext
 
@@ -30,6 +31,9 @@ class CCARSJobsPostings(object):
     is addressed by several other WDI projects. This class partially included
     as more of a proof concept for alpha version work and label generation.
     """
+    name = "ccarsjobsposting_service"
+    #dispatcher_rpc = RpcProxy("dispatcher") # note: use fast RPC service
+
     def __init__(self,
                  vt_root_url=VT_ROOT_URL,
                  vt_data_url=VT_DATA_URL,
@@ -46,6 +50,7 @@ class CCARSJobsPostings(object):
         self.vt_data_url = vt_data_url
         self.vt_datasets_link_regex = vt_dataset_link_regex
 
+    @rpc
     def check_mongo(self):
         ret = False
         if self.mongo.db:
@@ -55,6 +60,7 @@ class CCARSJobsPostings(object):
     def _drop_db(self):
         self.mongo.db.job_postings.drop()
 
+    @rpc
     def get_stats(self):
         ret = {}
         count = self.mongo.db.command({'collstats':'job_postings'})["count"]
@@ -71,6 +77,7 @@ class CCARSJobsPostings(object):
     def write_url(self, link, full_path):
         urllib.request.urlretrieve(link, full_path)
 
+    @rpc
     def add_all(self, maximum_links=None, total_samples=None):
         """ Load all the Virginia Tech job listings.
             Note: this is very slow, needs some profling and
@@ -142,6 +149,8 @@ class CCARSJobsPostings(object):
             return all_stats
 
 class SkillCandidates(object):
+    name = "skill_candidates"
+
     def __init__(self, preprocessor=['default'], n_keyterms=0.05):
         self.preprocessor = preprocessor
         self.preprocessors = {}
@@ -150,6 +159,7 @@ class SkillCandidates(object):
             if label == 'default':
                 self.preprocessors[label] = SingleRankWithContext(n_keyterms=n_keyterms)
 
+    @rpc
     def generate_candidates(self,
                             key='jobDescription',
                             db_class=MongoDatabase):
