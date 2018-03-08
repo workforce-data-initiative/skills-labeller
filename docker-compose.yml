@@ -9,8 +9,14 @@ services:
       # note: a project wide env-file directive would be cleaner
       - MONGO_HOST=mongo
       - RUN_UNITTESTS_ONLY=false
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBIT_HOST=rabbit
+      - RABBIT_PORT=5672
+      - RABBIT_MANAGEMENT_PORT=15672
     depends_on:
       - mongo
+      - rabbit
 
   skilloracle:
     image: skilloracle:latest
@@ -40,3 +46,11 @@ services:
     volumes:
       # this doesn't seem to work, todo: fix
       - /opt/mongo_data:/data/db
+
+  rabbit:
+    image: rabbitmq:3.6-management
+    ports:
+        - "15671:15671"
+        - "15672:15672"
+        - "5672:5672"
+    restart: always
