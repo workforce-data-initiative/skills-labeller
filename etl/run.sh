@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # adopted from nameko-example
-
 is_ready() {
     eval "curl -I http://${RABBIT_USER}:${RABBIT_PASSWORD}@${RABBIT_HOST}:${RABBIT_MANAGEMENT_PORT}/api/vhosts"
 }
@@ -13,11 +12,11 @@ else
 	while ! is_ready; do
 		i=`expr $i + 1`
 		if [ $i -ge 10 ]; then
-			echo "$(date) - rabbit still not ready, giving up"
+			echo "$(date) - RabbitMQ broker still not ready, giving up!"
 			exit 1
 		fi
-		echo "$(date) - waiting for rabbit to be ready"
-		sleep 3
+		echo "$(date) - Waiting for RabbitMQ to be ready..."
+		sleep 5
 	done
 	nameko run --config etl/config.yml etl.vt
 fi
