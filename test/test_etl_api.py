@@ -76,7 +76,7 @@ class DockerCompose(object):
 
         return ret
 
-class TestSkillOracleAPI(unittest.TestCase):
+class TestETLAPI(unittest.TestCase):
     """ Unit test for ETL API """
 
     @classmethod
@@ -87,9 +87,13 @@ class TestSkillOracleAPI(unittest.TestCase):
         # 3 services are up and amqp is responding
         time.sleep(30)
 
+        # Check that key services are up and running
         # should probably pull this name out of a config file as well .. :-/
         cls.rabbit_ip = cls.dockercompose.extract_service_ip('rabbit')
         assert len(cls.rabbit_ip.split('.')) == 4, "Rabbit MQ service ip is malformed/None!"
+
+        service_ip = cls.dockercompose.extract_service_ip('etl')
+        assert len(service_ip.split('.')) == 4, "ETL service ip is malformed!"
 
         # assumes the rabbit mq config hasn't changed, should be read in from a config file :-/
         cls.config = {
@@ -111,14 +115,6 @@ class TestSkillOracleAPI(unittest.TestCase):
 
         assert int(split_version[1]) >= 10,\
             "Minor Docker-compose version is too low ({})".format(split_version[1])
-
-    def test_up(self):
-        """
-        Stand up docker compse service, test that we can take it down
-        """
-        service_ip = self.dockercompose.extract_service_ip('etl')
-
-        assert len(service_ip.split('.')) == 4, "Service ip is malformed!"
 
     def test_check_mongo_api(self):
         with ClusterRpcProxy(self.config) as cluster_rpc:
