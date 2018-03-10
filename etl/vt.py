@@ -139,7 +139,7 @@ class CCARSJobsPostings(object):
                         logging.info('Successfully wrote batch. total seen: %s details: %s', total_seen, result.bulk_api_result)
 
                     logging.info('Successfully wrote dataset. details: %s', dataset_stats)
-                    for keys in ['nInserted', 'nMatched', 'nModified', 'nRemoved', 'nUpserted']:
+                    for key in ['nInserted', 'nMatched', 'nModified', 'nRemoved', 'nUpserted']:
                         all_stats[key] += dataset_stats[key]
 
                     all_stats['nLinks'] = link_count
