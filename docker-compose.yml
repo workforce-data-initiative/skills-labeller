@@ -51,6 +51,5 @@ services:
     image: rabbitmq:3.6-management
     ports:
         - "15671:15671"
-        - "15672:15672"
         - "5672:5672"
     restart: always
