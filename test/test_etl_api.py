@@ -125,19 +125,20 @@ class TestSkillOracleAPI(unittest.TestCase):
             self.assertTrue(cluster_rpc.ccarsjobsposting_service.check_mongo(),\
                     "RPC etl.vt.check_mongo failed!")
 
-    @unittest.skip('')
-    def test_get_stats(self):
-        # should probably pull this name out of a config file as well .. :-/
-        service_ip = self.dockercompose.extract_service_ip('rabbit')
-        assert len(service_ip.split('.')) == 4, "Rabbit MQ service ip is malformed/None!"
+    def test_add_all(self):
+        with ClusterRpcProxy(self.config) as cluster_rpc:
+            # test add_all call, note max samples of 1 with 1 link, should be quick
+            ret = cluster_rpc.\
+                    ccarsjobsposting_service.add_all(maximum_links=1,
+                                                     total_samples=1)
+            self.assertGreater(ret['nLinks'], 0, "RPC etl.vt.add_all did not write at least 1 link!")
 
-        # assumes the rabbit mq config hasn't changed, should be read in from a config file :-/
-        config = {
-            'AMQP_URI': 'amqp://guest:guest@{service_ip}:5672'.format(service_ip=service_ip)
-        }
-        with ClusterRpcProxy(config) as cluster_rpc:
-            self.assertTrue(cluster_rpc.ccarsjobsposting_service.check_mongo(),\
-                    "RPC etl.vt.check_mongo failed!")
+            # test get_stats, should have stuff in job_postings
+            ret = cluster_rpc.ccarsjobsposting_service.get_stats()
+            self.assertIsNotNone(ret, "RPC etl.vt.get_stats failed!")
+            self.assertGreater(ret['count'], 0,\
+                    "etl.vt.get_stats indicates that database has more than 0 postings!"\
+                    "Need to start with fresh, wiped, database!")
 
     @classmethod
     def tearDownClass(cls):

@@ -98,7 +98,7 @@ class CCARSJobsPostings(object):
 
         for link_count, link in enumerate(links[0:1], start=1):
             if maximum_links:
-                if link_count >= maximum_links:
+                if link_count > maximum_links:
                     break
 
             logging.info('On link #: %s',link_count)
@@ -110,7 +110,7 @@ class CCARSJobsPostings(object):
             all_stats = Counter()
 
             if not os.path.exists(full_filename):
-                self.write_url(link=link, file_path=full_filename)
+                self.write_url(link=link, full_path=full_filename)
                 print('Processing dataset {0}'.format(leaf_filename))
 
                 dataset_stats = Counter()
