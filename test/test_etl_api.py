@@ -124,13 +124,14 @@ class TestETLAPI(unittest.TestCase):
     def test_add_all(self):
         with ClusterRpcProxy(self.config) as cluster_rpc:
             # test add_all call, note max samples of 1 with 1 link, should be quick
+            # edit: quick = 22 minutes!
             ret = cluster_rpc.\
                     ccarsjobsposting_service.add_all(maximum_links=1,
                                                      total_samples=1)
             self.assertGreater(ret['nLinks'], 0, "RPC etl.vt.add_all did not write at least 1 link!")
 
             # test get_stats, should have stuff in job_postings
-            ret = cluster_rpc.ccarsjobsposting_service.get_stats()
+            ret = json.loads(cluster_rpc.ccarsjobsposting_service.get_stats())
             self.assertIsNotNone(ret, "RPC etl.vt.get_stats failed!")
             self.assertGreater(ret['count'], 0,\
                     "etl.vt.get_stats indicates that database has more than 0 postings!"\

@@ -37,8 +37,9 @@ class TestETL(unittest.TestCase):
         """
         self.ccars._drop_db()
 
-        if os.path.isfile(self.v3_dst_file_path):
-            os.remove(self.v3_dst_file_path)
+        if self.v3_dst_file_path:
+            if os.path.isfile(self.v3_dst_file_path):
+                os.remove(self.v3_dst_file_path)
 
     def test_db_connectivity(self):
         return self.ccars.check_mongo()
@@ -52,6 +53,15 @@ class TestETL(unittest.TestCase):
 
         # Undo any and all side effects
         self.undo_mock_write_url()
+
+    @unittest.skip("... live test skipped, better suited for API test")
+    def test_load_all_V3_API_live(self):
+        # Undo any and all side effects
+        self.undo_mock_write_url()
+
+        all_stats = self.ccars.add_all() # indirectly calls our mocked write_url
+        assert 1 == all_stats['nLinks'], 'Expected number of test downloads did not occur!'
+
 
     def test_get_stats(self):
         with patch('etl.vt.CCARSJobsPostings.write_url') as mock_write_url:
