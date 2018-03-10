@@ -22,14 +22,14 @@ class TestETL(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def copy_v3_test_file(self, link, file_path):
+    def copy_v3_test_file(self, link=None, full_path=None):
         """
         Simulates the result of successfully downloading V3
         CCARS Job posting data and writing it to disk
         """
         link = self.v3_api_filename
-        shutil.copyfile(link, file_path)
-        self.v3_dst_file_path = file_path
+        shutil.copyfile(link, full_path)
+        self.v3_dst_file_path = full_path
 
     def undo_mock_write_url(self):
         """

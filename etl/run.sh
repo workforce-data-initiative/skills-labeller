@@ -21,4 +21,4 @@ else
 	nameko run --config etl/config.yml etl.vt
 fi
 # trick for keeping container open, for debug
-#else while :; do echo 'Hit Ctrl+C'; sleep 25; done
+#then while :; do echo 'Hit Ctrl+C'; sleep 25; done

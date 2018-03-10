@@ -74,7 +74,7 @@ class CCARSJobsPostings(object):
 
         return json.dumps(ret)
 
-    def write_url(self, link, full_path):
+    def write_url(self, link=None, full_path=None):
         urllib.request.urlretrieve(link, full_path)
 
     @rpc
