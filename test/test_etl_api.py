@@ -87,11 +87,22 @@ class TestSkillOracleAPI(unittest.TestCase):
         # 3 services are up and amqp is responding
         time.sleep(30)
 
+        # should probably pull this name out of a config file as well .. :-/
+        cls.rabbit_ip = cls.dockercompose.extract_service_ip('rabbit')
+        assert len(cls.rabbit_ip.split('.')) == 4, "Rabbit MQ service ip is malformed/None!"
+
+        # assumes the rabbit mq config hasn't changed, should be read in from a config file :-/
+        cls.config = {
+            'AMQP_URI': 'amqp://guest:guest@{service_ip}:5672'.format(service_ip=cls.rabbit_ip)
+        }
+
     def test_check_version(self):
         """
         This is a very basic version check and isn't robust against
         letters and other ways of indicating versions. There are python
         libraries offering better version testing to consider using.
+
+        note; this may be redundant with the setUpClass use of of docker
         """
         ret = self.dockercompose.get_version()
         split_version = ret.split('.')
@@ -110,6 +121,12 @@ class TestSkillOracleAPI(unittest.TestCase):
         assert len(service_ip.split('.')) == 4, "Service ip is malformed!"
 
     def test_check_mongo_api(self):
+        with ClusterRpcProxy(self.config) as cluster_rpc:
+            self.assertTrue(cluster_rpc.ccarsjobsposting_service.check_mongo(),\
+                    "RPC etl.vt.check_mongo failed!")
+
+    @unittest.skip('')
+    def test_get_stats(self):
         # should probably pull this name out of a config file as well .. :-/
         service_ip = self.dockercompose.extract_service_ip('rabbit')
         assert len(service_ip.split('.')) == 4, "Rabbit MQ service ip is malformed/None!"
