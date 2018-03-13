@@ -10,7 +10,7 @@ import pymongo
 from nameko.rpc import rpc
 from etl.utils.mongo import MongoDatabase
 from skills_utils.iteration import Batch
-from etl.preprocessor import SingleRankWithContext
+from etl.preprocessor import SingleRankWithContext # shoudl SGRank be used, might be better?
 
 VT_DATASET_LINK_REGEX = "<a\s+href=\"(\S+).json\""
 VT_ROOT_URL = "http://opendata.cs.vt.edu"
@@ -165,6 +165,7 @@ class SkillCandidates(object):
     def generate_candidates(self,
                             key='jobDescription',
                             db_class=MongoDatabase):
+        ret = True
         db = db_class()
         for job_posting, job_posting_id in db.get_job_postings_and_ids():
             job_posting_text = job_posting[key]
@@ -187,6 +188,7 @@ class SkillCandidates(object):
                         expected_label=1,
                         preprocessor_id=label
                     )
+        return ret
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

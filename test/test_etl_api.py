@@ -92,7 +92,7 @@ class TestETLAPI(unittest.TestCase):
         cls.rabbit_ip = cls.dockercompose.extract_service_ip('rabbit')
         assert len(cls.rabbit_ip.split('.')) == 4, "Rabbit MQ service ip is malformed/None!"
 
-        service_ip = cls.dockercompose.extract_service_ip('etl')
+        service_ip = cls.dockercompose.extract_service_ip('etl') # is this needed?
         assert len(service_ip.split('.')) == 4, "ETL service ip is malformed!"
 
         # assumes the rabbit mq config hasn't changed, should be read in from a config file :-/
