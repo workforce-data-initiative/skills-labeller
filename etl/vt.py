@@ -42,7 +42,6 @@ class CCARSJobsPostings(object):
                  default_total_samples=TOTAL_SAMPLES,
                  default_batch_size=BATCH_SIZE):
         self.mongo = MongoDatabase()
-        self.total_samples = default_total_samples
         self.batch_size = default_batch_size
 
         self.vt_datasets = vt_datasets
@@ -78,7 +77,7 @@ class CCARSJobsPostings(object):
         urllib.request.urlretrieve(link, full_path)
 
     @rpc
-    def add_all(self, maximum_links=None, total_samples=None):
+    def add_all(self, maximum_links=None):
         """ Load all the Virginia Tech job listings.
             Note: this is very slow, needs some profling and
             inspection. Alternatively, a different database might
@@ -86,9 +85,6 @@ class CCARSJobsPostings(object):
             fast enough
         """
         mongo = self.mongo
-
-        if not total_samples:
-            total_samples = self.total_samples
 
         req = urllib.request.Request(self.vt_data_url)
         resp = urllib.request.urlopen(req)
@@ -118,8 +114,6 @@ class CCARSJobsPostings(object):
                     total_seen = 0
                     for batch in Batch(fp, self.batch_size):
                         total_seen += self.batch_size
-                        if total_seen > total_samples:
-                            break
                         logging.info('Processing batch')
                         requests = []
                         for job_json in batch:
