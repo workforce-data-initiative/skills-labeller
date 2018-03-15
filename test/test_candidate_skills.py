@@ -76,3 +76,10 @@ class TestCandidateSkills(unittest.TestCase):
         ret = db.sample_candidate(size=1)
         assert len(ret[0]) >= 4, "Expected at least 4 fields in sample! ({})".format(len(ret[0]))
         assert len(ret) == 1, "Expected one sample! ({})".format(len(ret))
+
+        random_candidate = ret[0]
+
+        self.assertTrue('context' in random_candidate, "Context not found in returned sample!")
+        self.assertTrue('token' in random_candidate, "Token not found in returned sample!")
+        self.assertTrue('expected_label' in random_candidate, "Expected label not found in returned sample!")
+        self.assertTrue('preprocessor_id' in random_candidate, "Preprocessor ID not found in returned sample!")
