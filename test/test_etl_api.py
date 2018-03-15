@@ -126,8 +126,7 @@ class TestETLAPI(unittest.TestCase):
             # test add_all call, note max samples of 1 with 1 link, should be quick
             # edit: quick = 22 minutes!
             ret = cluster_rpc.\
-                    ccarsjobsposting_service.add_all(maximum_links=1,
-                                                     total_samples=1)
+                    ccarsjobsposting_service.add_all(maximum_links=1)
             self.assertGreater(ret['nLinks'], 0, "RPC etl.vt.add_all did not write at least 1 link!")
 
             # test get_stats, should have stuff in job_postings
