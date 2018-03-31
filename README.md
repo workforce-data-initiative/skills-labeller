@@ -5,6 +5,7 @@ A WDI system for labelling and extracting skills within job postings. Implements
 #### ETL API unit test
 (warning: can take up to 20 minutes for broadband/slow connections,
   downloads first item of live dataset)
+
 // in docker-compose.yml:55, set RUN_UNITTESTS_ONLY=false
 
 // runs against stood up docker container defined in docker-compose
