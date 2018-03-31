@@ -14,6 +14,7 @@ RUN pip install pytest
 RUN python -m spacy download en
 # see: https://github.com/explosion/spaCy/issues/1110 (on debian)
 RUN apt-get install -y libgomp1 
+RUN apt-get install -y curl
 
 # Clean up
 RUN apt-get remove -y build-essential && apt-get remove -y git && apt-get -y autoremove

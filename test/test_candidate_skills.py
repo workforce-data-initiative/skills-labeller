@@ -14,6 +14,8 @@ class InstantiateDatabase(object):
     candidate skills may be extracted from it, is quite
     duplicative of the test_etl.py but kept seperate for
     independence purposes.
+
+    todo: put this in a test utils file, copy_v3... is also duplicated in test_etl.py
     """
     def __init__(self,
                  num_test_items=3,
@@ -34,14 +36,14 @@ class InstantiateDatabase(object):
         self.undo_mock_write_url()
         self.patcher.stop()
 
-    def copy_v3_test_file(self, link, file_path):
+    def copy_v3_test_file(self, link=None, full_path=None):
         """
         Simulates the result of successfully downloading V3
         CCARS Job posting data and writing it to disk
         """
         link = self.v3_api_filename
-        shutil.copyfile(link, file_path)
-        self.v3_dst_file_path = file_path # for removal
+        shutil.copyfile(link, full_path)
+        self.v3_dst_file_path = full_path # for removal
 
     def undo_mock_write_url(self):
         """
@@ -74,3 +76,10 @@ class TestCandidateSkills(unittest.TestCase):
         ret = db.sample_candidate(size=1)
         assert len(ret[0]) >= 4, "Expected at least 4 fields in sample! ({})".format(len(ret[0]))
         assert len(ret) == 1, "Expected one sample! ({})".format(len(ret))
+
+        random_candidate = ret[0]
+
+        self.assertTrue('context' in random_candidate, "Context not found in returned sample!")
+        self.assertTrue('token' in random_candidate, "Token not found in returned sample!")
+        self.assertTrue('expected_label' in random_candidate, "Expected label not found in returned sample!")
+        self.assertTrue('preprocessor_id' in random_candidate, "Preprocessor ID not found in returned sample!")

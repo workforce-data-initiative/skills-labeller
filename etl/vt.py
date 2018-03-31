@@ -6,10 +6,11 @@ import json
 import urllib.request
 import urllib.parse
 from collections import Counter
-from etl.utils.mongo import MongoDatabase
 import pymongo
+from nameko.rpc import rpc
+from etl.utils.mongo import MongoDatabase
 from skills_utils.iteration import Batch
-from etl.preprocessor import SingleRankWithContext
+from etl.preprocessor import SingleRankWithContext # shoudl SGRank be used, might be better?
 
 VT_DATASET_LINK_REGEX = "<a\s+href=\"(\S+).json\""
 VT_ROOT_URL = "http://opendata.cs.vt.edu"
@@ -30,6 +31,9 @@ class CCARSJobsPostings(object):
     is addressed by several other WDI projects. This class partially included
     as more of a proof concept for alpha version work and label generation.
     """
+    name = "ccarsjobsposting_service"
+    #dispatcher_rpc = RpcProxy("dispatcher") # note: use fast RPC service
+
     def __init__(self,
                  vt_root_url=VT_ROOT_URL,
                  vt_data_url=VT_DATA_URL,
@@ -38,7 +42,6 @@ class CCARSJobsPostings(object):
                  default_total_samples=TOTAL_SAMPLES,
                  default_batch_size=BATCH_SIZE):
         self.mongo = MongoDatabase()
-        self.total_samples = default_total_samples
         self.batch_size = default_batch_size
 
         self.vt_datasets = vt_datasets
@@ -46,6 +49,7 @@ class CCARSJobsPostings(object):
         self.vt_data_url = vt_data_url
         self.vt_datasets_link_regex = vt_dataset_link_regex
 
+    @rpc
     def check_mongo(self):
         ret = False
         if self.mongo.db:
@@ -55,6 +59,7 @@ class CCARSJobsPostings(object):
     def _drop_db(self):
         self.mongo.db.job_postings.drop()
 
+    @rpc
     def get_stats(self):
         ret = {}
         count = self.mongo.db.command({'collstats':'job_postings'})["count"]
@@ -68,10 +73,11 @@ class CCARSJobsPostings(object):
 
         return json.dumps(ret)
 
-    def write_url(self, link, full_path):
+    def write_url(self, link=None, full_path=None):
         urllib.request.urlretrieve(link, full_path)
 
-    def add_all(self, maximum_links=None, total_samples=None):
+    @rpc
+    def add_all(self, maximum_links=None):
         """ Load all the Virginia Tech job listings.
             Note: this is very slow, needs some profling and
             inspection. Alternatively, a different database might
@@ -79,9 +85,6 @@ class CCARSJobsPostings(object):
             fast enough
         """
         mongo = self.mongo
-
-        if not total_samples:
-            total_samples = self.total_samples
 
         req = urllib.request.Request(self.vt_data_url)
         resp = urllib.request.urlopen(req)
@@ -91,7 +94,7 @@ class CCARSJobsPostings(object):
 
         for link_count, link in enumerate(links[0:1], start=1):
             if maximum_links:
-                if link_count >= maximum_links:
+                if link_count > maximum_links:
                     break
 
             logging.info('On link #: %s',link_count)
@@ -103,7 +106,7 @@ class CCARSJobsPostings(object):
             all_stats = Counter()
 
             if not os.path.exists(full_filename):
-                self.write_url(link=link, file_path=full_filename)
+                self.write_url(link=link, full_path=full_filename)
                 print('Processing dataset {0}'.format(leaf_filename))
 
                 dataset_stats = Counter()
@@ -111,8 +114,6 @@ class CCARSJobsPostings(object):
                     total_seen = 0
                     for batch in Batch(fp, self.batch_size):
                         total_seen += self.batch_size
-                        if total_seen > total_samples:
-                            break
                         logging.info('Processing batch')
                         requests = []
                         for job_json in batch:
@@ -132,7 +133,7 @@ class CCARSJobsPostings(object):
                         logging.info('Successfully wrote batch. total seen: %s details: %s', total_seen, result.bulk_api_result)
 
                     logging.info('Successfully wrote dataset. details: %s', dataset_stats)
-                    for keys in ['nInserted', 'nMatched', 'nModified', 'nRemoved', 'nUpserted']:
+                    for key in ['nInserted', 'nMatched', 'nModified', 'nRemoved', 'nUpserted']:
                         all_stats[key] += dataset_stats[key]
 
                     all_stats['nLinks'] = link_count
@@ -142,6 +143,10 @@ class CCARSJobsPostings(object):
             return all_stats
 
 class SkillCandidates(object):
+    name = "skill_candidates"
+    #ccarsjobsposting_rpc = RpcProxy("ccarsjobsposting_service") # note: use fast RPC service
+    #dispatcher_rpc = RpcProxy("dispatcher") # note: use fast RPC service
+
     def __init__(self, preprocessor=['default'], n_keyterms=0.05):
         self.preprocessor = preprocessor
         self.preprocessors = {}
@@ -150,9 +155,11 @@ class SkillCandidates(object):
             if label == 'default':
                 self.preprocessors[label] = SingleRankWithContext(n_keyterms=n_keyterms)
 
+    @rpc
     def generate_candidates(self,
                             key='jobDescription',
                             db_class=MongoDatabase):
+        ret = True
         db = db_class()
         for job_posting, job_posting_id in db.get_job_postings_and_ids():
             job_posting_text = job_posting[key]
@@ -175,6 +182,7 @@ class SkillCandidates(object):
                         expected_label=1,
                         preprocessor_id=label
                     )
+        return ret
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
